@@ -204,19 +204,37 @@ export default function SettingsPage() {
         const { data: allCusts } = await supabase.from('customers').select('id')
 
         for (const c of (allCusts || [])) {
-          if (referencedCustIds.has(c.id)) {
-            // Anonymize personal info
-            await supabase.from('customers').update({
+          let deleted = false
+          if (!referencedCustIds.has(c.id)) {
+            const { data: delData } = await supabase.from('customers').delete().eq('id', c.id).select()
+            if (delData && delData.length > 0) {
+              deleted = true
+            }
+          }
+
+          if (!deleted) {
+            // Anonymize personal info and zero out wallet
+            const anonymizedMobile = 'DEL' + c.id.replace(/-/g, '').slice(0, 7)
+            const { error: anonErr } = await supabase.from('customers').update({
               name: '[Deleted Customer]',
-              mobile: 'DEL' + c.id.replace(/-/g, '').slice(0, 7),
+              mobile: anonymizedMobile,
               cashback_balance: 0,
               cashback_earned: 0,
               cashback_redeemed: 0,
               total_purchases: 0,
+              updated_at: new Date().toISOString(),
             }).eq('id', c.id)
-          } else {
-            // Delete record
-            await supabase.from('customers').delete().eq('id', c.id)
+
+            if (anonErr && anonErr.code === '23514') {
+              await supabase.from('customers').update({
+                name: '[Deleted Customer]',
+                cashback_balance: 0,
+                cashback_earned: 0,
+                cashback_redeemed: 0,
+                total_purchases: 0,
+                updated_at: new Date().toISOString(),
+              }).eq('id', c.id)
+            }
           }
         }
 

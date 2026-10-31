@@ -38,6 +38,7 @@ export default function BillingPage() {
   const [suggestions, setSuggestions] = useState<Customer[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Billing inputs
@@ -83,20 +84,25 @@ export default function BillingPage() {
         .from('customers')
         .select('*')
         .like('mobile', `${cleanPrefix}%`)
+        .not('name', 'eq', '[Deleted Customer]')
+        .not('mobile', 'like', 'DEL%')
         .order('mobile')
         .limit(8)
 
       if (error) {
         setSuggestions([])
+        setHighlightedIndex(-1)
       } else {
         const unique = (data as Customer[] || []).filter(
           (c, idx, arr) => arr.findIndex(item => item.id === c.id) === idx
         )
         setSuggestions(unique)
+        setHighlightedIndex(unique.length > 0 ? 0 : -1)
         setShowSuggestions(true)
       }
     } catch {
       setSuggestions([])
+      setHighlightedIndex(-1)
     } finally {
       setIsSearching(false)
     }
@@ -117,6 +123,7 @@ export default function BillingPage() {
       }, 120)
     } else {
       setSuggestions([])
+      setHighlightedIndex(-1)
       setShowSuggestions(false)
     }
   }
@@ -125,6 +132,7 @@ export default function BillingPage() {
     setCustomer(selected)
     setMobile(selected.mobile)
     setSuggestions([])
+    setHighlightedIndex(-1)
     setShowSuggestions(false)
     setIsNewCustomer(false)
     setStep('billing')
@@ -149,6 +157,8 @@ export default function BillingPage() {
       .from('customers')
       .select('*')
       .eq('mobile', norm)
+      .not('name', 'eq', '[Deleted Customer]')
+      .not('mobile', 'like', 'DEL%')
       .maybeSingle()
 
     if (data) {
@@ -360,7 +370,7 @@ export default function BillingPage() {
           <h1 className="section-title flex items-center gap-2">
             <Receipt size={22} className="text-brand-600 dark:text-brand-400" /> New Bill
           </h1>
-          <p className="section-subtitle">Point of Sale & Loyalty Rewards</p>
+          <p className="section-subtitle">Point of Sale</p>
         </div>
         <button onClick={resetBilling} className="btn-secondary text-xs flex items-center gap-1.5">
           <RefreshCw size={14} /> Reset Form
@@ -406,7 +416,7 @@ export default function BillingPage() {
         ))}
       </div>
 
-      <div className="page-card p-6 space-y-5">
+      <div className="page-card p-6 space-y-5 !overflow-visible">
         {/* ── Step 1: Clean Mobile Number Search (Strictly placeholder "Enter 10-digit mobile number") ── */}
         {step === 'mobile' && (
           <div className="space-y-4 animate-fade-in">
@@ -423,8 +433,25 @@ export default function BillingPage() {
                     value={mobile}
                     onChange={e => handleMobileChange(e.target.value)}
                     onKeyDown={e => {
-                      if (e.key === 'Enter') {
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault()
                         if (suggestions.length > 0) {
+                          setShowSuggestions(true)
+                          setHighlightedIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : 0))
+                        }
+                      } else if (e.key === 'ArrowUp') {
+                        e.preventDefault()
+                        if (suggestions.length > 0) {
+                          setShowSuggestions(true)
+                          setHighlightedIndex(prev => (prev > 0 ? prev - 1 : suggestions.length - 1))
+                        }
+                      } else if (e.key === 'Escape') {
+                        setShowSuggestions(false)
+                      } else if (e.key === 'Enter') {
+                        e.preventDefault()
+                        if (showSuggestions && highlightedIndex >= 0 && suggestions[highlightedIndex]) {
+                          handleSelectCustomer(suggestions[highlightedIndex])
+                        } else if (suggestions.length > 0 && showSuggestions) {
                           handleSelectCustomer(suggestions[0])
                         } else {
                           handleMobileSearch()
@@ -460,39 +487,61 @@ export default function BillingPage() {
 
               {mobileError && <p className="form-error">{mobileError}</p>}
 
-              {/* Autocomplete Dropdown (Clean, prefix-only suggestions) */}
+              {/* Autocomplete Dropdown (Clean, prefix-only suggestions, no clipping) */}
               {showSuggestions && mobile.length >= 1 && (
-                <div className="absolute left-0 right-0 mt-1.5 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-2xl shadow-xl z-30 overflow-hidden divide-y divide-slate-100 dark:divide-dark-800">
+                <div className="absolute left-0 right-0 mt-2 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-dark-800">
                   {suggestions.length > 0 ? (
-                    <div className="max-h-60 overflow-y-auto">
-                      {suggestions.map(cust => (
-                        <div
-                          key={cust.id}
-                          onClick={() => handleSelectCustomer(cust)}
-                          className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-dark-800/80 cursor-pointer transition-colors flex items-center justify-between group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-950/80 text-brand-700 dark:text-brand-300 font-bold text-xs flex items-center justify-center">
-                              {cust.name[0]?.toUpperCase() || 'C'}
+                    <div className="max-h-72 overflow-y-auto">
+                      {suggestions.map((cust, idx) => {
+                        const isHighlighted = idx === highlightedIndex
+                        return (
+                          <div
+                            key={cust.id}
+                            onClick={() => handleSelectCustomer(cust)}
+                            onMouseEnter={() => setHighlightedIndex(idx)}
+                            className={`px-4 py-3 cursor-pointer transition-colors flex items-center justify-between group ${
+                              isHighlighted
+                                ? 'bg-brand-50/80 dark:bg-brand-950/60'
+                                : 'hover:bg-slate-50 dark:hover:bg-dark-800/80'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center transition-colors ${
+                                  isHighlighted
+                                    ? 'bg-brand-600 text-white'
+                                    : 'bg-brand-100 dark:bg-brand-950/80 text-brand-700 dark:text-brand-300'
+                                }`}
+                              >
+                                {cust.name[0]?.toUpperCase() || 'C'}
+                              </div>
+                              <div>
+                                <p
+                                  className={`font-semibold text-sm ${
+                                    isHighlighted
+                                      ? 'text-brand-700 dark:text-brand-300'
+                                      : 'text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400'
+                                  }`}
+                                >
+                                  {cust.name}
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                                  {cust.mobile}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-semibold text-slate-900 dark:text-white text-sm group-hover:text-brand-600 dark:group-hover:text-brand-400">
-                                {cust.name}
-                              </p>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-                                {cust.mobile}
-                              </p>
-                            </div>
-                          </div>
 
-                          <div className="text-right">
-                            <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Wallet</span>
-                            <span className="text-xs font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/60 px-2 py-0.5 rounded-full">
-                              {formatCurrency(cust.cashback_balance)}
-                            </span>
+                            <div className="text-right">
+                              <span className="text-[10px] text-slate-400 uppercase tracking-wider block">
+                                Wallet
+                              </span>
+                              <span className="text-xs font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/60 px-2 py-0.5 rounded-full">
+                                {formatCurrency(cust.cashback_balance)}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   ) : (
                     <div className="p-4 text-center">

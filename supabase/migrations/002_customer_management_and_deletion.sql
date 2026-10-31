@@ -3,6 +3,10 @@
 -- Run this in Supabase SQL Editor (Project → SQL Editor)
 -- ============================================================
 
+-- ─── 0. Allow Anonymized Mobile Numbers in Customer Check Constraint ──
+ALTER TABLE public.customers DROP CONSTRAINT IF EXISTS customers_mobile_check;
+ALTER TABLE public.customers ADD CONSTRAINT customers_mobile_check CHECK (mobile ~ '^[6-9][0-9]{9}$' OR mobile LIKE 'DEL%');
+
 -- ─── 1. RLS Delete Policy for Authenticated Admins ──────────
 DO $$
 BEGIN

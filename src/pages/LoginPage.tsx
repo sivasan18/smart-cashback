@@ -123,7 +123,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-6">
-          Smart Cashback © {new Date().getFullYear()} · Xerox & Recharge Shop
+          Smart Cashback © {new Date().getFullYear()} ·
         </p>
       </div>
     </div>

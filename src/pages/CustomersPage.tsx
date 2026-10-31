@@ -181,33 +181,26 @@ export default function CustomersPage() {
         toast.success(`Customer ${deletingCustomer.name} deleted successfully`)
       } else {
         // Fallback: Client-side deletion / anonymization
-        // Check if customer has financial transactions
-        const { data: txs } = await supabase
-          .from('transactions')
-          .select('id')
-          .eq('customer_id', deletingCustomer.id)
-          .limit(1)
+        console.warn('RPC delete_customer unavailable, running fallback:', rpcErr.message)
 
-        const hasTransactions = (txs && txs.length > 0)
-
-        // Delete ledger records
+        // Delete ledger records if any
         await supabase
           .from('cashback_ledger')
           .delete()
           .eq('customer_id', deletingCustomer.id)
 
-        if (!hasTransactions) {
-          // No financial history: delete directly
-          const { error: delErr } = await supabase
-            .from('customers')
-            .delete()
-            .eq('id', deletingCustomer.id)
+        // Try direct delete from customers table
+        const { data: delRows, error: delErr } = await supabase
+          .from('customers')
+          .delete()
+          .eq('id', deletingCustomer.id)
+          .select()
 
-          if (delErr) throw delErr
-        } else {
-          // Financial history exists: anonymize PII to protect financial audit integrity
+        // If direct DELETE was blocked by Postgres RLS policy or FK constraint,
+        // perform guaranteed anonymization update allowed by auth_update_customers
+        if (delErr || !delRows || delRows.length === 0) {
           const anonymizedMobile = 'DEL' + deletingCustomer.id.replace(/-/g, '').slice(0, 7)
-          const { error: anonErr } = await supabase
+          let { error: anonErr } = await supabase
             .from('customers')
             .update({
               name: '[Deleted Customer]',
@@ -219,6 +212,22 @@ export default function CustomersPage() {
               updated_at: new Date().toISOString(),
             })
             .eq('id', deletingCustomer.id)
+
+          // If customers_mobile_check constraint blocked DEL prefix (migration 002 not yet executed in Supabase)
+          if (anonErr && anonErr.code === '23514') {
+            const res = await supabase
+              .from('customers')
+              .update({
+                name: '[Deleted Customer]',
+                cashback_balance: 0,
+                cashback_earned: 0,
+                cashback_redeemed: 0,
+                total_purchases: 0,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', deletingCustomer.id)
+            anonErr = res.error
+          }
 
           if (anonErr) throw anonErr
         }
