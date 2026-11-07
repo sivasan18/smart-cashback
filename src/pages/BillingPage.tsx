@@ -4,8 +4,11 @@ import {
   Search, CheckCircle, Phone, ShoppingBag,
   Wallet, Calculator, Receipt, RefreshCw,
   UserPlus, Plus, QrCode, Banknote, CreditCard,
-  Monitor, MonitorOff, ArrowLeft, X
+  Monitor, MonitorOff, ArrowLeft, X, Sparkles,
+  CheckCircle2, Coins, Printer, Layers, Check
 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import confetti from 'canvas-confetti'
 import { supabase } from '@/lib/supabase'
 import { calculateCashback, formatCurrency, validateMobile, normalizeMobile } from '@/lib/cashback'
 import { useSettingsStore } from '@/store/settingsStore'
@@ -545,6 +548,21 @@ export default function BillingPage() {
 
       setStep('done')
       toast.success('Bill saved & cashback credited successfully!')
+
+      // 3D Celebration Confetti Burst
+      try {
+        confetti({
+          particleCount: 90,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ['#5B3DF5', '#E8DEFF', '#10B981', '#F59E0B', '#FACC15', '#00f2fe'],
+          ticks: 250,
+          gravity: 0.9,
+          scalar: 1.2,
+        })
+      } catch (e) {
+        // Safe fallback if canvas not available
+      }
     } catch (err) {
       setPaymentStatus('payment_failed')
       toast.error(err instanceof Error ? err.message : 'Failed to save transaction')
@@ -624,59 +642,75 @@ export default function BillingPage() {
           <p className="section-subtitle">Point of Sale</p>
         </div>
         <div className="flex items-center gap-2">
-          {/* OPEN CUSTOMER DISPLAY */}
-          <button
-            type="button"
-            onClick={handleOpenCustomerDisplay}
-            className="btn-primary text-xs flex items-center gap-1.5 px-3.5 py-2 font-bold uppercase tracking-wider shadow-sm"
-            title="Open Customer Display in separate window for second monitor"
-          >
-            <Monitor size={15} />
-            <span>OPEN CUSTOMER DISPLAY</span>
-          </button>
           <button onClick={resetBilling} className="btn-secondary text-xs flex items-center gap-1.5">
             <RefreshCw size={14} /> Reset Form
           </button>
         </div>
       </div>
 
-      {/* Progress Indicators */}
-      <div className="flex items-center gap-2">
-        {stepLabels.map((s, i) => (
-          <div key={s} className="flex items-center gap-2 flex-1">
-            <div
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all ${
-                step === s
-                  ? 'bg-brand-600 dark:bg-brand-500 text-white ring-4 ring-brand-100 dark:ring-brand-950/70 shadow-sm'
-                  : stepLabels.indexOf(step) > i
-                  ? 'bg-brand-500 text-white'
-                  : 'bg-slate-100 dark:bg-dark-800 text-slate-400 dark:text-slate-500'
-              }`}
-            >
-              {stepLabels.indexOf(step) > i ? '✓' : i + 1}
-            </div>
-            <span
-              className={`text-xs font-medium hidden sm:block ${
-                step === s
-                  ? 'text-brand-700 dark:text-brand-300 font-semibold'
-                  : stepLabels.indexOf(step) > i
-                  ? 'text-slate-600 dark:text-slate-400'
-                  : 'text-slate-300 dark:text-dark-600'
-              }`}
-            >
-              {stepDisplay[i]}
-            </span>
-            {i < stepLabels.length - 1 && (
-              <div
-                className={`flex-1 h-0.5 ${
-                  stepLabels.indexOf(step) > i
-                    ? 'bg-brand-400 dark:bg-brand-600'
-                    : 'bg-slate-200 dark:bg-dark-800'
-                }`}
-              />
-            )}
-          </div>
-        ))}
+      {/* Interactive 3D Stepper Journey */}
+      <div className="p-2 sm:p-3 rounded-2xl bg-white/70 dark:bg-dark-900/70 backdrop-blur-md border border-slate-200/80 dark:border-dark-800 shadow-lg relative overflow-hidden">
+        <div className="flex items-center justify-between gap-1 sm:gap-2">
+          {stepLabels.map((s, i) => {
+            const isActive = step === s
+            const isCompleted = stepLabels.indexOf(step) > i
+
+            return (
+              <div key={s} className="flex items-center gap-1.5 sm:gap-2 flex-1">
+                <motion.div
+                  animate={isActive ? { scale: [1, 1.08, 1], y: -2 } : { scale: 1, y: 0 }}
+                  transition={isActive ? { repeat: Infinity, duration: 2.2, ease: 'easeInOut' } : { duration: 0.2 }}
+                  className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all ${
+                    isActive
+                      ? 'bg-gradient-to-tr from-brand-600 to-indigo-500 text-white shadow-[0_4px_16px_rgba(91,61,245,0.45)] ring-2 ring-brand-300 dark:ring-brand-500 border border-white/30 font-black'
+                      : isCompleted
+                      ? 'bg-emerald-500 text-white shadow-sm font-bold'
+                      : 'bg-slate-100 dark:bg-dark-800 text-slate-400 dark:text-slate-500 border border-transparent'
+                  }`}
+                >
+                  {isCompleted ? (
+                    <motion.div
+                      initial={{ scale: 0, rotate: -45 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                    >
+                      <Check size={14} strokeWidth={3} />
+                    </motion.div>
+                  ) : (
+                    <span>{i + 1}</span>
+                  )}
+                </motion.div>
+
+                <div className="hidden sm:block min-w-0">
+                  <p
+                    className={`text-[11px] font-semibold tracking-tight uppercase leading-tight truncate ${
+                      isActive
+                        ? 'text-brand-700 dark:text-brand-300 font-extrabold'
+                        : isCompleted
+                        ? 'text-emerald-600 dark:text-emerald-400 font-medium'
+                        : 'text-slate-400 dark:text-dark-500'
+                    }`}
+                  >
+                    {stepDisplay[i]}
+                  </p>
+                </div>
+
+                {i < stepLabels.length - 1 && (
+                  <div className="flex-1 h-1 rounded-full overflow-hidden bg-slate-200 dark:bg-dark-800 ml-1">
+                    <motion.div
+                      className={`h-full ${
+                        isCompleted ? 'bg-emerald-500' : 'bg-transparent'
+                      }`}
+                      initial={{ width: 0 }}
+                      animate={{ width: isCompleted ? '100%' : '0%' }}
+                      transition={{ duration: 0.4 }}
+                    />
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       <div className="page-card p-6 space-y-5 !overflow-visible">
@@ -897,15 +931,68 @@ export default function BillingPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="sm:col-span-2">
-                <label htmlFor="service-cat" className="form-label">
-                  Service Category
-                </label>
+              <div className="sm:col-span-2 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="service-cat" className="form-label mb-0">
+                    Service Category
+                  </label>
+                  <span className="text-[11px] text-brand-600 dark:text-brand-400 font-semibold flex items-center gap-1">
+                    <Sparkles size={12} /> Instant 2% Cashback
+                  </span>
+                </div>
+
+                {/* 3D Floating Category Cards Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                  {categories.map(c => {
+                    const isSelected = serviceCategory === c.name
+                    return (
+                      <motion.button
+                        key={c.id}
+                        type="button"
+                        whileHover={{ scale: 1.04, y: -3 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setServiceCategory(c.name)}
+                        className={`p-3 rounded-2xl text-left border transition-all duration-200 relative overflow-hidden flex flex-col justify-between ${
+                          isSelected
+                            ? 'bg-gradient-to-br from-brand-50 to-brand-100/70 dark:from-brand-950/80 dark:to-brand-900/60 border-brand-500 shadow-[0_8px_20px_rgba(91,61,245,0.25)] ring-2 ring-brand-400/40'
+                            : 'bg-white dark:bg-dark-900 border-slate-200/80 dark:border-dark-800 hover:border-brand-300 dark:hover:border-brand-800 shadow-sm'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full mb-1.5">
+                          <span
+                            className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${
+                              isSelected
+                                ? 'bg-brand-600 text-white'
+                                : 'bg-slate-100 dark:bg-dark-800 text-slate-500'
+                            }`}
+                          >
+                            {c.name.slice(0, 1)}
+                          </span>
+                          {isSelected && (
+                            <span className="w-2 h-2 rounded-full bg-brand-500 animate-ping" />
+                          )}
+                        </div>
+                        <span
+                          className={`text-xs font-bold leading-snug truncate ${
+                            isSelected
+                              ? 'text-brand-800 dark:text-brand-200'
+                              : 'text-slate-700 dark:text-slate-300'
+                          }`}
+                        >
+                          {c.name}
+                        </span>
+                      </motion.button>
+                    )
+                  })}
+                </div>
+
+                {/* Accessible select synchronized with cards */}
                 <select
                   id="service-cat"
                   value={serviceCategory}
                   onChange={e => setServiceCategory(e.target.value)}
-                  className="form-input"
+                  className="sr-only"
+                  aria-label="Select Service Category"
                 >
                   {categories.map(c => (
                     <option key={c.id} value={c.name}>
@@ -1353,57 +1440,145 @@ export default function BillingPage() {
           </div>
         )}
 
-        {/* ── Step 5: Completed ── */}
+        {/* ── Step 5: Completed with 3D Bill Dispense & Confetti Celebration ── */}
         {step === 'done' && summary && customer && (
-          <div className="text-center space-y-5 py-4 animate-fade-in">
-            <div className="w-20 h-20 rounded-full bg-brand-100 dark:bg-brand-950/80 text-brand-600 dark:text-brand-400 flex items-center justify-center mx-auto shadow-sm">
-              <CheckCircle size={44} />
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Bill Saved Successfully!</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                Transaction recorded and customer wallet balance updated.
-              </p>
-              {lastSavedTxId && (
-                <p className="text-[11px] font-mono text-slate-400 dark:text-slate-500 mt-1">
-                  ID: {lastSavedTxId}
-                </p>
-              )}
-            </div>
-
-            <div className="bg-slate-50 dark:bg-dark-950/80 border border-slate-200 dark:border-dark-800 rounded-2xl p-5 text-sm space-y-2.5 text-left max-w-md mx-auto">
-              <div className="flex justify-between">
-                <span className="text-slate-600 dark:text-slate-400">Customer</span>
-                <span className="font-semibold text-slate-900 dark:text-white">{customer.name} ({customer.mobile})</span>
+          <div className="text-center space-y-6 py-2 animate-fade-in">
+            {/* Floating 3D Golden Coins Banner */}
+            <motion.div
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: [0, -4, 0], opacity: 1 }}
+              transition={{
+                y: { repeat: Infinity, duration: 2.6, ease: 'easeInOut' },
+                opacity: { duration: 0.4 },
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-amber-500/10 via-yellow-500/15 to-brand-500/10 border border-amber-400/40 dark:border-amber-400/30 shadow-md"
+            >
+              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 text-amber-950 flex items-center justify-center font-black text-xs shadow-sm">
+                ₹
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600 dark:text-slate-400">Bill Amount</span>
-                <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(summary.billAmount)}</span>
+              <span className="text-sm font-black text-amber-600 dark:text-amber-300 tracking-wide">
+                +{formatCurrency(summary.cashbackEarned)} Cashback Earned!
+              </span>
+              <Sparkles size={16} className="text-amber-500 dark:text-amber-300 animate-spin" />
+            </motion.div>
+
+            {/* Virtual Printer Slot Top Mount */}
+            <div className="w-full max-w-md mx-auto">
+              <div className="h-3 w-56 mx-auto bg-slate-800 dark:bg-dark-900 rounded-full shadow-inner flex items-center justify-center border border-slate-700/60 dark:border-dark-700">
+                <div className="h-1 w-44 bg-black/90 rounded-full" />
               </div>
-              {summary.cashbackToRedeem > 0 && (
-                <div className="flex justify-between text-orange-600 dark:text-orange-400">
-                  <span>Cashback Redeemed</span>
-                  <span className="font-semibold">− {formatCurrency(summary.cashbackToRedeem)}</span>
+
+              {/* 3D Bill Dispense Paper Receipt Card */}
+              <motion.div
+                initial={{ y: -40, opacity: 0, rotateX: 28, scale: 0.94 }}
+                animate={{ y: 0, opacity: 1, rotateX: 0, scale: 1 }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 140,
+                  damping: 16,
+                  mass: 0.8,
+                }}
+                style={{
+                  perspective: 1000,
+                  transformStyle: 'preserve-3d',
+                }}
+                className="mt-1 relative bg-white dark:bg-dark-900 border border-slate-200/90 dark:border-dark-700 rounded-3xl p-6 text-left shadow-[0_20px_45px_-10px_rgba(0,0,0,0.18)] dark:shadow-[0_20px_45px_-10px_rgba(0,0,0,0.5)] overflow-hidden"
+              >
+                {/* 3D Stamped Green Checkmark Seal */}
+                <motion.div
+                  initial={{ scale: 3, opacity: 0, rotate: -35 }}
+                  animate={{ scale: 1, opacity: 1, rotate: -8 }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 320,
+                    damping: 18,
+                    delay: 0.28,
+                  }}
+                  className="absolute right-4 top-4 pointer-events-none z-20 flex flex-col items-center justify-center border-2 border-emerald-500/80 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-xl shadow-lg backdrop-blur-sm"
+                >
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 size={16} className="text-emerald-500" />
+                    <span className="text-[11px] font-black uppercase tracking-widest">PAID & VERIFIED</span>
+                  </div>
+                  <span className="text-[9px] font-mono text-emerald-700 dark:text-emerald-300">
+                    {paymentMethod.toUpperCase()}
+                  </span>
+                </motion.div>
+
+                {/* Receipt Header */}
+                <div className="border-b border-dashed border-slate-200 dark:border-dark-700 pb-3.5 mb-3.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-brand-50 dark:bg-brand-950/80 border border-brand-200 dark:border-brand-800 text-brand-600 dark:text-brand-400 flex items-center justify-center">
+                      <Receipt size={16} />
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-sm text-slate-900 dark:text-white leading-tight">
+                        {settings?.shop_name || 'Smart Cashback Shop'}
+                      </h3>
+                      <p className="text-[10px] text-slate-400 font-mono">
+                        {lastSavedTxId ? `TXN #${lastSavedTxId.slice(0, 14)}` : 'RECEIPT VOUCHER'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-slate-600 dark:text-slate-400">Amount Paid</span>
-                <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(summary.amountPaid)}</span>
-              </div>
-              <div className="flex justify-between text-brand-600 dark:text-brand-400">
-                <span className="font-medium">Cashback Earned</span>
-                <span className="font-bold">+{formatCurrency(summary.cashbackEarned)}</span>
-              </div>
-              <div className="flex justify-between border-t border-slate-200 dark:border-dark-800 pt-2.5 mt-2">
-                <span className="font-bold text-slate-900 dark:text-white">Current Wallet Balance</span>
-                <span className="font-extrabold text-brand-600 dark:text-brand-400 text-lg">
-                  {formatCurrency(customer.cashback_balance)}
-                </span>
-              </div>
+
+                {/* Receipt Line Items */}
+                <div className="text-xs space-y-2.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 dark:text-slate-400">Customer</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">
+                      {customer.name} ({customer.mobile})
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 dark:text-slate-400">Service Category</span>
+                    <span className="font-medium text-slate-800 dark:text-slate-200">
+                      {serviceCategory}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 dark:text-slate-400">Bill Amount</span>
+                    <span className="font-medium text-slate-900 dark:text-white">
+                      {formatCurrency(summary.billAmount)}
+                    </span>
+                  </div>
+                  {summary.cashbackToRedeem > 0 && (
+                    <div className="flex justify-between items-center text-orange-600 dark:text-orange-400">
+                      <span>Cashback Redeemed</span>
+                      <span className="font-semibold">− {formatCurrency(summary.cashbackToRedeem)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center border-t border-slate-100 dark:border-dark-800 pt-2 font-bold">
+                    <span className="text-slate-700 dark:text-slate-300">Amount Paid</span>
+                    <span className="text-base text-slate-900 dark:text-white">
+                      {formatCurrency(summary.amountPaid)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-900/50 p-2.5 rounded-xl text-brand-700 dark:text-brand-300">
+                    <span className="font-semibold flex items-center gap-1.5">
+                      <Coins size={14} className="text-brand-600 dark:text-brand-400" /> Cashback Credited
+                    </span>
+                    <span className="font-black text-sm">+{formatCurrency(summary.cashbackEarned)}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-t border-dashed border-slate-200 dark:border-dark-700 pt-2.5">
+                    <span className="font-bold text-slate-900 dark:text-white">Updated Wallet Balance</span>
+                    <span className="font-black text-brand-600 dark:text-brand-400 text-lg">
+                      {formatCurrency(customer.cashback_balance)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Jagged Bottom Perforation Pattern */}
+                <div className="mt-4 pt-2 border-t border-dashed border-slate-300 dark:border-dark-700 text-center">
+                  <p className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">
+                    ✦ THANK YOU FOR VISITING ✦
+                  </p>
+                </div>
+              </motion.div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-2 max-w-md mx-auto">
               <button
                 type="button"
                 onClick={handleBillSameCustomerAgain}

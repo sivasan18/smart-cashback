@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { formatCurrency, validateMobile, normalizeMobile } from '@/lib/cashback'
 import { format } from 'date-fns'
 import type { Customer, Transaction } from '@/types'
+import DigitalCashbackPass3D from '@/components/common/DigitalCashbackPass3D'
 
 export default function WalletLookupPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -387,8 +388,19 @@ export default function WalletLookupPage() {
 
           {/* Customer Wallet Found */}
           {customer && (
-            <div className="space-y-5 animate-fade-in">
-              {/* Header card */}
+            <div className="space-y-6 animate-fade-in">
+              {/* Luxury 3D Digital Cashback Pass */}
+              <div className="py-2 flex justify-center">
+                <DigitalCashbackPass3D
+                  customerName={customer.name}
+                  mobile={customer.mobile}
+                  balance={customer.cashback_balance}
+                  lifetimeEarned={customer.cashback_earned}
+                  shopName="Smart Cashback POS"
+                />
+              </div>
+
+              {/* Header summary */}
               <div className="page-card p-5 bg-gradient-to-r from-slate-50 to-brand-50/50 dark:from-dark-900 dark:to-brand-950/40 border border-brand-200/60 dark:border-brand-900/60 flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 dark:text-white">

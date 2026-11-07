@@ -25,6 +25,7 @@ const DEFAULT_SETTINGS: Omit<ShopSettings, 'id' | 'updated_at'> = {
   qr_payment_method: 'standard_upi',
   payment_expiry_seconds: 300,
   display_timeout_seconds: 5,
+  customer_display_enabled: true,
 }
 
 function getStoredLocalUPISettings(): Partial<ShopSettings> {

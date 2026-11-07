@@ -23,6 +23,7 @@ export default function SettingsPage() {
     qr_payment_method: 'standard_upi' as 'standard_upi' | 'payment_gateway',
     payment_expiry_seconds: 300,
     display_timeout_seconds: 5,
+    customer_display_enabled: true,
   })
   const [categories, setCategories] = useState<ServiceCategory[]>([])
   const [newCat, setNewCat] = useState('')
@@ -58,6 +59,7 @@ export default function SettingsPage() {
         qr_payment_method: settings.qr_payment_method || 'standard_upi',
         payment_expiry_seconds: settings.payment_expiry_seconds || 300,
         display_timeout_seconds: settings.display_timeout_seconds || 5,
+        customer_display_enabled: settings.customer_display_enabled !== false,
       })
     }
   }, [settings])
@@ -428,6 +430,32 @@ export default function SettingsPage() {
               <p className="text-xs text-slate-400 mt-1">
                 Delay after transaction completion before returning to Welcome screen (default: 5s)
               </p>
+            </div>
+
+            <div className="sm:col-span-2 pt-3 border-t border-slate-100 dark:border-dark-800 flex items-center justify-between">
+              <div>
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block">
+                  Customer Display (Secondary Screen)
+                </label>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Show or hide the secondary customer-facing display shortcut in the sidebar.
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={form.customer_display_enabled}
+                onClick={() => setForm(f => ({ ...f, customer_display_enabled: !f.customer_display_enabled }))}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  form.customer_display_enabled ? 'bg-brand-600' : 'bg-slate-300 dark:bg-dark-700'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    form.customer_display_enabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
             </div>
           </div>
         </div>

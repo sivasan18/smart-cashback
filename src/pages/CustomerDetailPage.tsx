@@ -6,6 +6,7 @@ import { formatCurrency } from '@/lib/cashback'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 import type { Customer, Transaction, CashbackLedger } from '@/types'
+import DigitalCashbackPass3D from '@/components/common/DigitalCashbackPass3D'
 
 export default function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -86,6 +87,17 @@ export default function CustomerDetailPage() {
             {customer.mobile} · Customer since {format(new Date(customer.created_at), 'dd MMMM yyyy')}
           </p>
         </div>
+      </div>
+
+      {/* 3D VIP Digital Cashback Pass */}
+      <div className="py-2 flex justify-center">
+        <DigitalCashbackPass3D
+          customerName={customer.name}
+          mobile={customer.mobile}
+          balance={customer.cashback_balance}
+          lifetimeEarned={customer.cashback_earned}
+          shopName="Smart Cashback POS"
+        />
       </div>
 
       {/* Stat cards */}

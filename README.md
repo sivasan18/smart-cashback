@@ -1,6 +1,6 @@
-# Smart Cashback – Xerox & Recharge Shop Management
+# Smart Cashback – Shop Management
 
-A complete, production-ready cashback loyalty management system for small Xerox, printing, and mobile recharge shops.
+A complete, production-ready cashback loyalty management system shops.
 
 ## Features
 
