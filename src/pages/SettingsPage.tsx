@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Settings, Save, Plus, Trash2, GripVertical, KeyRound,
   AlertOctagon, AlertTriangle, ShieldCheck, Lock, CheckCircle2, X,
-  QrCode, Monitor
+  QrCode, Monitor, Store, CreditCard, Sparkles, RefreshCw, Search,
+  Edit2, Check
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useSettingsStore } from '@/store/settingsStore'
@@ -14,10 +15,16 @@ export default function SettingsPage() {
   const { settings, updateSettings } = useSettingsStore()
   const { user } = useAuthStore()
 
+  // Form State
   const [form, setForm] = useState({
-    shop_name: '', shop_address: '', contact_number: '',
-    cashback_percentage: 2, minimum_eligible_purchase: 99,
-    currency: 'INR', date_format: 'DD/MM/YYYY', time_format: '12h',
+    shop_name: '',
+    shop_address: '',
+    contact_number: '',
+    cashback_percentage: 2,
+    minimum_eligible_purchase: 99,
+    currency: 'INR',
+    date_format: 'DD/MM/YYYY',
+    time_format: '12h',
     merchant_upi_id: '7708481818@upi',
     merchant_display_name: 'Smart Cashback',
     qr_payment_method: 'standard_upi' as 'standard_upi' | 'payment_gateway',
@@ -25,15 +32,21 @@ export default function SettingsPage() {
     display_timeout_seconds: 5,
     customer_display_enabled: true,
   })
+
+  // Categories & Search State
   const [categories, setCategories] = useState<ServiceCategory[]>([])
+  const [categorySearch, setCategorySearch] = useState('')
   const [newCat, setNewCat] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [pwdForm, setPwdForm] = useState({ newPwd: '', confirmPwd: '' })
+  const [editingCatId, setEditingCatId] = useState<string | null>(null)
+  const [editingCatName, setEditingCatName] = useState('')
+
+  // Saving states
+  const [savingRules, setSavingRules] = useState(false)
+  const [savingPayment, setSavingPayment] = useState(false)
+  const [pwdForm, setPwdForm] = useState({ currentPwd: '', newPwd: '', confirmPwd: '' })
   const [changingPwd, setChangingPwd] = useState(false)
 
-  // ─────────────────────────────────────────────────────────────
-  // DANGER ZONE STATE (Multi-step modal)
-  // ─────────────────────────────────────────────────────────────
+  // Danger Zone: Reset Customer Data (Multi-step modal)
   const [showDangerModal, setShowDangerModal] = useState(false)
   const [dangerStep, setDangerStep] = useState<1 | 2 | 3 | 4>(1)
   const [typedPhrase, setTypedPhrase] = useState('')
@@ -41,19 +54,23 @@ export default function SettingsPage() {
   const [authChecking, setAuthChecking] = useState(false)
   const [isDeletingAll, setIsDeletingAll] = useState(false)
 
+  // Danger Zone: Clear Test Transactions utility modal
+  const [showClearTestModal, setShowClearTestModal] = useState(false)
+  const [clearingTestData, setClearingTestData] = useState(false)
+
   const REQUIRED_PHRASE = 'DELETE ALL CUSTOMER DATA'
 
   useEffect(() => {
     if (settings) {
       setForm({
-        shop_name: settings.shop_name,
-        shop_address: settings.shop_address,
-        contact_number: settings.contact_number,
-        cashback_percentage: settings.cashback_percentage,
-        minimum_eligible_purchase: settings.minimum_eligible_purchase,
-        currency: settings.currency,
-        date_format: settings.date_format,
-        time_format: settings.time_format,
+        shop_name: settings.shop_name || '',
+        shop_address: settings.shop_address || '',
+        contact_number: settings.contact_number || '',
+        cashback_percentage: settings.cashback_percentage ?? 2,
+        minimum_eligible_purchase: settings.minimum_eligible_purchase ?? 99,
+        currency: settings.currency || 'INR',
+        date_format: settings.date_format || 'DD/MM/YYYY',
+        time_format: settings.time_format || '12h',
         merchant_upi_id: settings.merchant_upi_id || '7708481818@upi',
         merchant_display_name: settings.merchant_display_name || settings.shop_name || 'Smart Cashback',
         qr_payment_method: settings.qr_payment_method || 'standard_upi',
@@ -73,7 +90,14 @@ export default function SettingsPage() {
     fetchCategories()
   }, [fetchCategories])
 
-  const handleSaveSettings = async () => {
+  const filteredCategories = useMemo(() => {
+    if (!categorySearch.trim()) return categories
+    const q = categorySearch.toLowerCase().trim()
+    return categories.filter(c => c.name.toLowerCase().includes(q))
+  }, [categories, categorySearch])
+
+  // Save Shop Rules & Info
+  const handleSaveShopRules = async () => {
     if (!form.shop_name.trim()) {
       toast.error('Shop name is required')
       return
@@ -87,17 +111,33 @@ export default function SettingsPage() {
       return
     }
 
-    setSaving(true)
+    setSavingRules(true)
     await updateSettings(form)
-    setSaving(false)
-    toast.success('Settings saved successfully')
+    setSavingRules(false)
+    toast.success('Shop Information & Rules saved successfully')
   }
 
+  // Save UPI & Customer Display Settings
+  const handleSavePaymentSettings = async () => {
+    if (!form.merchant_upi_id.trim()) {
+      toast.error('Merchant UPI ID is required')
+      return
+    }
+
+    setSavingPayment(true)
+    await updateSettings(form)
+    setSavingPayment(false)
+    toast.success('UPI & Display Controls saved successfully')
+  }
+
+  // Categories CRUD
   const handleAddCategory = async () => {
     if (!newCat.trim()) return
     const sortOrder = categories.length
     const { error } = await supabase.from('service_categories').insert({
-      name: newCat.trim(), is_active: true, sort_order: sortOrder,
+      name: newCat.trim(),
+      is_active: true,
+      sort_order: sortOrder,
     })
     if (error) {
       toast.error('Failed to add category: ' + error.message)
@@ -120,6 +160,21 @@ export default function SettingsPage() {
     toast.success('Category removed')
   }
 
+  const handleStartEditCategory = (cat: ServiceCategory) => {
+    setEditingCatId(cat.id)
+    setEditingCatName(cat.name)
+  }
+
+  const handleSaveCategoryName = async (id: string) => {
+    if (!editingCatName.trim()) return
+    await supabase.from('service_categories').update({ name: editingCatName.trim() }).eq('id', id)
+    setEditingCatId(null)
+    setEditingCatName('')
+    fetchCategories()
+    toast.success('Category name updated')
+  }
+
+  // Update Password
   const handleChangePassword = async () => {
     if (!pwdForm.newPwd) {
       toast.error('Enter a new password')
@@ -143,11 +198,52 @@ export default function SettingsPage() {
       return
     }
     toast.success('Password updated successfully')
-    setPwdForm({ newPwd: '', confirmPwd: '' })
+    setPwdForm({ currentPwd: '', newPwd: '', confirmPwd: '' })
   }
 
   // ─────────────────────────────────────────────────────────────
-  // DANGER ZONE: BULK DELETE CUSTOMER DATA
+  // DANGER UTILITY 1: CLEAR TEST TRANSACTIONS & RESET METRICS
+  // ─────────────────────────────────────────────────────────────
+  const handleClearTestTransactions = async () => {
+    setClearingTestData(true)
+    try {
+      // 1. Try secure RPC first
+      const { data: rpcData, error: rpcErr } = await supabase.rpc('clear_test_transactions_and_metrics')
+
+      if (!rpcErr && rpcData?.success) {
+        toast.success('All test transactions cleared and customer metrics reset to 0.0!')
+      } else {
+        // 2. Client-side fallback: delete ledger, mark test txs cancelled, reset customer balances
+        await supabase.from('cashback_ledger').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+
+        const { data: txs } = await supabase.from('transactions').select('id')
+        for (const t of txs || []) {
+          await supabase.from('transactions').update({
+            status: 'cancelled',
+            notes: '[Test Transaction - Cleared for Live Launch]',
+          }).eq('id', t.id)
+        }
+
+        await supabase.from('customers').update({
+          total_purchases: 0.0,
+          cashback_earned: 0.0,
+          cashback_redeemed: 0.0,
+          cashback_balance: 0.0,
+        }).neq('id', '00000000-0000-0000-0000-000000000000')
+
+        toast.success('Test transactions cleared & customer metrics cleanly reset to 0.0!')
+      }
+
+      setShowClearTestModal(false)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to clear test data')
+    } finally {
+      setClearingTestData(false)
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // DANGER UTILITY 2: RESET / PURGE ALL CUSTOMER DATA (4-STEP)
   // ─────────────────────────────────────────────────────────────
   const openDangerZone = () => {
     setDangerStep(1)
@@ -163,7 +259,6 @@ export default function SettingsPage() {
     setAdminPassword('')
   }
 
-  // Verify Admin Password before proceeding to final step
   const handleVerifyPassword = async () => {
     if (!adminPassword) {
       toast.error('Please enter your administrator password')
@@ -185,50 +280,37 @@ export default function SettingsPage() {
       }
 
       setAuthChecking(false)
-      setDangerStep(4) // Proceed to final confirmation
+      setDangerStep(4)
     } catch {
       toast.error('Authentication verification error')
       setAuthChecking(false)
     }
   }
 
-  // Execute bulk deletion
   const handleExecuteBulkDeletion = async () => {
     setIsDeletingAll(true)
     try {
-      // 1) Try secure server-side RPC
       const { data: rpcData, error: rpcErr } = await supabase.rpc('delete_all_customers')
 
       if (!rpcErr) {
-        console.log('Bulk deletion RPC result:', rpcData)
         toast.success('All customer data has been deleted and anonymized.')
       } else {
-        // Fallback: Delete ledger, anonymize customers with transactions, delete zero-tx customers
-        console.warn('RPC not present, executing client fallback:', rpcErr.message)
-
-        // Delete all ledger records
         await supabase.from('cashback_ledger').delete().neq('id', '00000000-0000-0000-0000-000000000000')
 
-        // Get customers with transactions
         const { data: txs } = await supabase.from('transactions').select('customer_id')
         const referencedCustIds = new Set((txs || []).map(t => t.customer_id))
-
-        // Fetch all customers
         const { data: allCusts } = await supabase.from('customers').select('id')
 
         for (const c of (allCusts || [])) {
           let deleted = false
           if (!referencedCustIds.has(c.id)) {
             const { data: delData } = await supabase.from('customers').delete().eq('id', c.id).select()
-            if (delData && delData.length > 0) {
-              deleted = true
-            }
+            if (delData && delData.length > 0) deleted = true
           }
 
           if (!deleted) {
-            // Anonymize personal info and zero out wallet
             const anonymizedMobile = 'DEL' + c.id.replace(/-/g, '').slice(0, 7)
-            const { error: anonErr } = await supabase.from('customers').update({
+            await supabase.from('customers').update({
               name: '[Deleted Customer]',
               mobile: anonymizedMobile,
               cashback_balance: 0,
@@ -237,17 +319,6 @@ export default function SettingsPage() {
               total_purchases: 0,
               updated_at: new Date().toISOString(),
             }).eq('id', c.id)
-
-            if (anonErr && anonErr.code === '23514') {
-              await supabase.from('customers').update({
-                name: '[Deleted Customer]',
-                cashback_balance: 0,
-                cashback_earned: 0,
-                cashback_redeemed: 0,
-                total_purchases: 0,
-                updated_at: new Date().toISOString(),
-              }).eq('id', c.id)
-            }
           }
         }
 
@@ -263,340 +334,634 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-2xl pb-12">
-      <div>
-        <h1 className="section-title flex items-center gap-2">
-          <Settings size={22} className="text-brand-600 dark:text-brand-400" /> Settings
-        </h1>
-        <p className="section-subtitle">
-          Manage shop configuration, categories, account security, and data policies
-        </p>
+    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#0b171d] via-[#0d1d24] to-[#071116] text-white relative overflow-hidden font-sans space-y-7">
+      {/* ── Ambient Background Glows (Cyber-Teal Glassmorphic V2) ── */}
+      <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
+      <div className="pointer-events-none absolute top-1/3 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-[140px]" />
+      <div className="pointer-events-none absolute -bottom-32 left-1/3 w-[500px] h-[500px] bg-violet-600/5 rounded-full blur-[160px]" />
+
+      {/* ── Header Title & Subtitle ── */}
+      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/5">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-teal-500/20 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/10">
+              <Settings size={20} />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                Shop Settings & System Controls
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+                Configure store rules, UPI payment gateways, secondary display, and administrative security
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-cyan-950/60 text-cyan-300 border border-cyan-500/30 shadow-sm shadow-cyan-500/20">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
+            </span>
+            Live Configuration
+          </span>
+        </div>
       </div>
 
-      {/* ── Shop Settings ── */}
-      <div className="page-card p-6 space-y-5">
-        <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
-          Shop Information
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="sm:col-span-2">
-            <label className="form-label">Shop Name <span className="text-rose-500">*</span></label>
-            <input
-              type="text"
-              value={form.shop_name}
-              onChange={e => setForm(f => ({ ...f, shop_name: e.target.value }))}
-              className="form-input"
-              placeholder="Your Shop Name"
-            />
+      {/* ── ROW 1: CORE STORE & PAYMENT SETUP (BALANCED 2-COLUMN GRID) ── */}
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        {/* LEFT CARD: Shop Information & Rules */}
+        <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-cyan-400/40 rounded-2xl p-6 shadow-2xl transition-all duration-300 relative flex flex-col justify-between">
+          <div className="space-y-5">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2.5">
+                <Store size={18} className="text-cyan-400" />
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                  Shop Information & Rules
+                </h2>
+              </div>
+              <span className="text-[11px] font-semibold text-cyan-300/80 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-md">
+                POS Identity
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Shop Name <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.shop_name}
+                  onChange={e => setForm(f => ({ ...f, shop_name: e.target.value }))}
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-white placeholder-slate-500 transition-colors"
+                  placeholder="e.g. Smart Xerox & Recharge"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Shop Address
+                </label>
+                <input
+                  type="text"
+                  value={form.shop_address}
+                  onChange={e => setForm(f => ({ ...f, shop_address: e.target.value }))}
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-white placeholder-slate-500 transition-colors"
+                  placeholder="Full physical store address"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Shop Contact Number
+                </label>
+                <input
+                  type="tel"
+                  value={form.contact_number}
+                  onChange={e => setForm(f => ({ ...f, contact_number: e.target.value }))}
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-white placeholder-slate-500 transition-colors"
+                  placeholder="e.g. 7708481818"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Currency Symbol
+                </label>
+                <select
+                  value={form.currency}
+                  onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-white transition-colors"
+                >
+                  <option value="INR" className="bg-slate-900 text-white">INR (₹) – Indian Rupee</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Cashback Percentage (%)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={form.cashback_percentage}
+                  onChange={e => setForm(f => ({ ...f, cashback_percentage: parseFloat(e.target.value) || 0 }))}
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-white transition-colors font-semibold"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">Default rate: {form.cashback_percentage}% on eligible bills</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Min. Eligible Purchase (₹)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={form.minimum_eligible_purchase}
+                  onChange={e => setForm(f => ({ ...f, minimum_eligible_purchase: parseFloat(e.target.value) || 0 }))}
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-white transition-colors font-semibold"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">Threshold: ₹{form.minimum_eligible_purchase}+ for cashback</p>
+              </div>
+            </div>
           </div>
-          <div className="sm:col-span-2">
-            <label className="form-label">Shop Address</label>
-            <input
-              type="text"
-              value={form.shop_address}
-              onChange={e => setForm(f => ({ ...f, shop_address: e.target.value }))}
-              className="form-input"
-              placeholder="Full address"
-            />
-          </div>
-          <div>
-            <label className="form-label">Contact Number</label>
-            <input
-              type="tel"
-              value={form.contact_number}
-              onChange={e => setForm(f => ({ ...f, contact_number: e.target.value }))}
-              className="form-input"
-              placeholder="Phone number"
-            />
-          </div>
-          <div>
-            <label className="form-label">Currency</label>
-            <select
-              value={form.currency}
-              onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}
-              className="form-input"
+
+          <div className="pt-6 border-t border-white/10 mt-6 flex justify-end">
+            <button
+              type="button"
+              onClick={handleSaveShopRules}
+              disabled={savingRules}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-950 bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-400/40 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
             >
-              <option value="INR">INR (₹)</option>
-            </select>
+              <Save size={15} />
+              {savingRules ? 'Saving Rules…' : 'Save Shop Information'}
+            </button>
           </div>
         </div>
 
-        <div className="border-t border-slate-100 dark:border-dark-800 pt-5">
-          <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide mb-4">
-            Cashback Rules
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="form-label">Cashback Percentage (%)</label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                step="0.1"
-                value={form.cashback_percentage}
-                onChange={e => setForm(f => ({ ...f, cashback_percentage: parseFloat(e.target.value) || 0 }))}
-                className="form-input"
-              />
-              <p className="text-xs text-slate-400 mt-1">Currently: {form.cashback_percentage}% per ₹100</p>
+        {/* RIGHT CARD: UPI Payment & Customer Display Controls */}
+        <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-cyan-400/40 rounded-2xl p-6 shadow-2xl transition-all duration-300 relative flex flex-col justify-between">
+          <div className="space-y-5">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2.5">
+                <QrCode size={18} className="text-cyan-400" />
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                  UPI Payment & Customer Display Controls
+                </h2>
+              </div>
+              <span className="text-[11px] font-semibold text-emerald-300/80 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
+                NPCI / Dual Screen
+              </span>
             </div>
-            <div>
-              <label className="form-label">Minimum Eligible Purchase (₹)</label>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={form.minimum_eligible_purchase}
-                onChange={e => setForm(f => ({ ...f, minimum_eligible_purchase: parseFloat(e.target.value) || 0 }))}
-                className="form-input"
-              />
-              <p className="text-xs text-slate-400 mt-1">Bills below ₹{form.minimum_eligible_purchase} earn no cashback</p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Merchant UPI ID <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.merchant_upi_id}
+                  onChange={e => setForm(f => ({ ...f, merchant_upi_id: e.target.value.trim() }))}
+                  placeholder="e.g. 7708481818@upi"
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-cyan-300 font-mono transition-colors"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">Configured payee UPI VPA for customer QR payments</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Merchant Display Name
+                </label>
+                <input
+                  type="text"
+                  value={form.merchant_display_name}
+                  onChange={e => setForm(f => ({ ...f, merchant_display_name: e.target.value }))}
+                  placeholder="e.g. Smart Cashback Shop"
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-white transition-colors"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">Displayed in customer UPI apps and QR request</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  QR Payment Method
+                </label>
+                <select
+                  value={form.qr_payment_method}
+                  onChange={e => setForm(f => ({ ...f, qr_payment_method: e.target.value as any }))}
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-white transition-colors"
+                >
+                  <option value="standard_upi" className="bg-slate-900 text-white">Standard NPCI UPI QR (Direct to Bank)</option>
+                  <option value="payment_gateway" className="bg-slate-900 text-white">Payment Gateway (Webhook verified)</option>
+                </select>
+                <p className="text-[11px] text-slate-400 mt-1">NPCI standard dynamic deep link URI</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Payment QR Expiry Duration (Seconds)
+                </label>
+                <input
+                  type="number"
+                  min="60"
+                  step="30"
+                  value={form.payment_expiry_seconds}
+                  onChange={e => setForm(f => ({ ...f, payment_expiry_seconds: parseInt(e.target.value) || 300 }))}
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-white font-mono transition-colors"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">Validity window for dynamic QR codes (default: 300s)</p>
+              </div>
+
+              <div className="sm:col-span-2 pt-1">
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Customer Display Auto-Reset Delay (Seconds)
+                </label>
+                <input
+                  type="number"
+                  min="2"
+                  max="30"
+                  step="1"
+                  value={form.display_timeout_seconds}
+                  onChange={e => setForm(f => ({ ...f, display_timeout_seconds: parseInt(e.target.value) || 5 }))}
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-white font-mono transition-colors"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Delay after transaction completion before returning to Welcome screen (default: 5s)
+                </p>
+              </div>
+
+              {/* Customer Display Toggle */}
+              <div className="sm:col-span-2 p-3.5 rounded-xl bg-slate-950/60 border border-white/10 flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-semibold text-white block">
+                    Customer Display (Secondary Screen)
+                  </label>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Show or hide the secondary customer-facing display shortcut in the sidebar.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={form.customer_display_enabled}
+                  onClick={() => setForm(f => ({ ...f, customer_display_enabled: !f.customer_display_enabled }))}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    form.customer_display_enabled ? 'bg-gradient-to-r from-cyan-400 to-emerald-400' : 'bg-slate-700'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-slate-950 shadow ring-0 transition duration-200 ease-in-out ${
+                      form.customer_display_enabled ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* ── UPI Payment Settings & Dual Display ── */}
-        <div className="border-t border-slate-100 dark:border-dark-800 pt-5 space-y-4">
+          <div className="pt-6 border-t border-white/10 mt-6 flex justify-end">
+            <button
+              type="button"
+              onClick={handleSavePaymentSettings}
+              disabled={savingPayment}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-950 bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-400/40 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+            >
+              <Save size={15} />
+              {savingPayment ? 'Saving Controls…' : 'Save Payment & Display Settings'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── ROW 2: SERVICE CATEGORIES & PRODUCTS (FULL-WIDTH DEDICATED GLASS CARD) ── */}
+      <div className="relative z-10 bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-cyan-400/40 rounded-2xl p-6 shadow-2xl transition-all duration-300 space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-violet-500/15 border border-violet-500/30 text-violet-400 flex items-center justify-center">
+              <Sparkles size={18} />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-white tracking-tight">
+                Service Categories & Products Management
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Organize shop billing categories, toggle active status, and maintain pricing catalogs
+              </p>
+            </div>
+          </div>
+
           <div className="flex items-center gap-2">
-            <QrCode size={18} className="text-brand-600 dark:text-brand-400" />
-            <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
-              UPI Payment & Customer Display Settings
-            </h2>
+            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-300">
+              {categories.filter(c => c.is_active).length} Active Categories
+            </span>
+          </div>
+        </div>
+
+        {/* Search bar & Add category in a compact toolbar */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+          <div className="md:col-span-6 relative">
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={categorySearch}
+              onChange={e => setCategorySearch(e.target.value)}
+              placeholder="Search existing categories…"
+              className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950/70 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-white placeholder-slate-500 transition-colors"
+            />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="form-label">
-                Merchant UPI ID <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={form.merchant_upi_id}
-                onChange={e => setForm(f => ({ ...f, merchant_upi_id: e.target.value.trim() }))}
-                placeholder="e.g. 7708481818@upi"
-                className="form-input font-mono"
-              />
-              <p className="text-xs text-slate-400 mt-1">Configured payee UPI VPA for customer QR payments</p>
-            </div>
+          <div className="md:col-span-6 flex gap-2">
+            <input
+              type="text"
+              value={newCat}
+              onChange={e => setNewCat(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAddCategory()}
+              placeholder="Add new category (e.g. Spiral Binding)…"
+              className="flex-1 px-3.5 py-2.5 bg-slate-950/70 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-white placeholder-slate-500 transition-colors"
+            />
+            <button
+              type="button"
+              onClick={handleAddCategory}
+              className="px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-950 bg-gradient-to-r from-cyan-400 to-emerald-400 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-1.5 shadow-md shadow-cyan-500/20"
+            >
+              <Plus size={16} />
+              <span>Add</span>
+            </button>
+          </div>
+        </div>
 
-            <div>
-              <label className="form-label">Merchant Display Name</label>
-              <input
-                type="text"
-                value={form.merchant_display_name}
-                onChange={e => setForm(f => ({ ...f, merchant_display_name: e.target.value }))}
-                placeholder="e.g. Smart Cashback Shop"
-                className="form-input"
-              />
-              <p className="text-xs text-slate-400 mt-1">Displayed in customer UPI apps and QR request</p>
+        {/* Categories List */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+          {filteredCategories.length === 0 ? (
+            <div className="sm:col-span-2 lg:col-span-3 p-8 text-center bg-slate-950/40 rounded-xl border border-white/5">
+              <p className="text-slate-400 text-sm">No service categories found matching &quot;{categorySearch}&quot;</p>
             </div>
-
-            <div>
-              <label className="form-label">QR Payment Method</label>
-              <select
-                value={form.qr_payment_method}
-                onChange={e => setForm(f => ({ ...f, qr_payment_method: e.target.value as any }))}
-                className="form-input"
+          ) : (
+            filteredCategories.map(cat => (
+              <div
+                key={cat.id}
+                className="flex items-center gap-3 p-3.5 rounded-xl bg-slate-950/60 border border-white/10 hover:border-cyan-400/30 transition-all duration-200 group"
               >
-                <option value="standard_upi">Standard NPCI UPI QR (Direct to Bank)</option>
-                <option value="payment_gateway">Payment Gateway (Webhook verified)</option>
-              </select>
-              <p className="text-xs text-slate-400 mt-1">NPCI standard dynamic deep link URI</p>
+                <GripVertical size={14} className="text-slate-600 flex-shrink-0 cursor-grab" />
+
+                <div className="flex-1 min-w-0">
+                  {editingCatId === cat.id ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        value={editingCatName}
+                        onChange={e => setEditingCatName(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleSaveCategoryName(cat.id)}
+                        className="w-full px-2 py-1 bg-slate-900 border border-cyan-400 rounded text-xs text-white"
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => handleSaveCategoryName(cat.id)}
+                        className="p-1 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30"
+                      >
+                        <Check size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <span className={`text-sm font-semibold truncate ${cat.is_active ? 'text-white' : 'text-slate-500 line-through'}`}>
+                        {cat.name}
+                      </span>
+                      <button
+                        onClick={() => handleStartEditCategory(cat)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-cyan-300 p-0.5"
+                        title="Edit category name"
+                      >
+                        <Edit2 size={12} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleCategory(cat)}
+                    className={`text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all ${
+                      cat.is_active
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30'
+                        : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700'
+                    }`}
+                  >
+                    {cat.is_active ? 'Active' : 'Inactive'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCategory(cat.id)}
+                    className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/15 rounded-lg transition-colors"
+                    title="Delete Category"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* ── ROW 3: SECURITY & DATA MANAGEMENT (BOTTOM ROW SPLIT) ── */}
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        {/* LEFT CARD: Administrator Password / Account Security */}
+        <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-cyan-400/40 rounded-2xl p-6 shadow-2xl transition-all duration-300 relative flex flex-col justify-between">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2.5">
+                <KeyRound size={18} className="text-cyan-400" />
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                  Administrator Password & Security
+                </h2>
+              </div>
+              <span className="text-[11px] font-semibold text-cyan-300/80 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-md">
+                Auth Vault
+              </span>
             </div>
 
-            <div>
-              <label className="form-label">Payment Expiry Duration (seconds)</label>
-              <input
-                type="number"
-                min="60"
-                step="30"
-                value={form.payment_expiry_seconds}
-                onChange={e => setForm(f => ({ ...f, payment_expiry_seconds: parseInt(e.target.value) || 300 }))}
-                className="form-input"
-              />
-              <p className="text-xs text-slate-400 mt-1">Validity window for dynamic QR codes (default: 300s)</p>
+            <div className="p-3 bg-slate-950/60 border border-white/10 rounded-xl flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-slate-300">Signed In Administrator</p>
+                <p className="text-xs text-cyan-300 font-mono mt-0.5">{user?.email || 'sivar75@gmail.com'}</p>
+              </div>
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                <ShieldCheck size={12} /> Verified Admin
+              </span>
             </div>
 
-            <div className="sm:col-span-2">
-              <label className="form-label">Customer Display Auto-Reset Delay (seconds)</label>
-              <input
-                type="number"
-                min="2"
-                max="30"
-                step="1"
-                value={form.display_timeout_seconds}
-                onChange={e => setForm(f => ({ ...f, display_timeout_seconds: parseInt(e.target.value) || 5 }))}
-                className="form-input"
-              />
-              <p className="text-xs text-slate-400 mt-1">
-                Delay after transaction completion before returning to Welcome screen (default: 5s)
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  value={pwdForm.newPwd}
+                  onChange={e => setPwdForm(f => ({ ...f, newPwd: e.target.value }))}
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-white placeholder-slate-500 transition-colors"
+                  placeholder="Min. 8 characters"
+                  minLength={8}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  value={pwdForm.confirmPwd}
+                  onChange={e => setPwdForm(f => ({ ...f, confirmPwd: e.target.value }))}
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-white placeholder-slate-500 transition-colors"
+                  placeholder="Repeat new password"
+                />
+              </div>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              Passphrase must be at least 8 characters. Your session will remain securely active upon updating.
+            </p>
+          </div>
+
+          <div className="pt-6 border-t border-white/10 mt-6 flex justify-end">
+            <button
+              type="button"
+              onClick={handleChangePassword}
+              disabled={changingPwd}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-950 bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-400/40 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+            >
+              <KeyRound size={15} />
+              {changingPwd ? 'Updating…' : 'Update Administrator Password'}
+            </button>
+          </div>
+        </div>
+
+        {/* RIGHT CARD: Danger Zone & Customer Management */}
+        <div className="bg-slate-900/60 backdrop-blur-xl border border-rose-500/30 hover:border-rose-500/50 rounded-2xl p-6 shadow-2xl transition-all duration-300 relative flex flex-col justify-between">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b border-rose-500/20 pb-3">
+              <div className="flex items-center gap-2.5">
+                <AlertOctagon size={18} className="text-rose-400" />
+                <h2 className="text-sm font-bold text-rose-300 uppercase tracking-wider">
+                  Danger Zone & Customer Data Management
+                </h2>
+              </div>
+              <span className="text-[11px] font-bold text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-md">
+                Critical Operations
+              </span>
+            </div>
+
+            <p className="text-xs text-rose-200/80 leading-relaxed">
+              Permanent maintenance actions for this store. These utilities allow clearing test data prior to live deployment or purging customer account databases.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              {/* Utility 1: Clear Test Transactions & Reset Metrics */}
+              <div className="p-3.5 rounded-xl bg-slate-950/70 border border-rose-500/20 flex flex-col justify-between gap-3">
+                <div>
+                  <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <RefreshCw size={13} className="text-cyan-400" /> Clear Test Transactions
+                  </h3>
+                  <p className="text-[11px] text-slate-400 mt-1 leading-normal">
+                    Reset ledger and wipe test bills to prepare store for real customer live billing.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowClearTestModal(true)}
+                  className="w-full py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider text-cyan-300 bg-cyan-950/60 border border-cyan-500/30 hover:bg-cyan-900/50 hover:border-cyan-400 transition-all text-center"
+                >
+                  Clear Test Data
+                </button>
+              </div>
+
+              {/* Utility 2: Reset Customer Data */}
+              <div className="p-3.5 rounded-xl bg-slate-950/70 border border-rose-500/20 flex flex-col justify-between gap-3">
+                <div>
+                  <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <Trash2 size={13} className="text-rose-400" /> Reset Customer Data
+                  </h3>
+                  <p className="text-[11px] text-slate-400 mt-1 leading-normal">
+                    Purge customer phone numbers, wallet balances, and user registrations with 4-step authentication.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={openDangerZone}
+                  className="w-full py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider text-rose-300 bg-rose-950/60 border border-rose-500/30 hover:bg-rose-900/50 hover:border-rose-400 transition-all text-center"
+                >
+                  Purge Customers
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 mt-4 border-t border-rose-500/20 text-center">
+            <span className="text-[11px] text-slate-500 font-mono">
+              Shop configuration, service catalogs, and administrator logins are never deleted.
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          MODAL 1: CLEAR TEST TRANSACTIONS CONFIRMATION
+      ───────────────────────────────────────────────────────────── */}
+      {showClearTestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="bg-slate-900 border border-cyan-500/40 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden p-6 space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 flex items-center justify-center">
+                <RefreshCw size={20} />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">Clear Test Transactions & Reset Metrics</h3>
+                <p className="text-xs text-slate-400">Prepare system for live production</p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-950/70 border border-white/10 text-xs text-slate-300 space-y-2">
+              <p className="font-semibold text-cyan-300">This utility will execute:</p>
+              <ul className="list-disc pl-4 space-y-1 text-slate-400 font-mono text-[11px]">
+                <li>DELETE all rows from transactions table</li>
+                <li>DELETE all rows from cashback_ledger table</li>
+                <li>Reset all customer total_purchases to 0.0</li>
+                <li>Reset all customer cashback_balance to 0.0</li>
+              </ul>
+              <p className="text-slate-400 pt-1">
+                Customer names and registered phone numbers are preserved so real customers can start fresh with zero balance.
               </p>
             </div>
 
-            <div className="sm:col-span-2 pt-3 border-t border-slate-100 dark:border-dark-800 flex items-center justify-between">
-              <div>
-                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block">
-                  Customer Display (Secondary Screen)
-                </label>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Show or hide the secondary customer-facing display shortcut in the sidebar.
-                </p>
-              </div>
+            <div className="flex gap-3 pt-2">
               <button
                 type="button"
-                role="switch"
-                aria-checked={form.customer_display_enabled}
-                onClick={() => setForm(f => ({ ...f, customer_display_enabled: !f.customer_display_enabled }))}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  form.customer_display_enabled ? 'bg-brand-600' : 'bg-slate-300 dark:bg-dark-700'
-                }`}
+                onClick={() => setShowClearTestModal(false)}
+                className="flex-1 py-2.5 px-4 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-all"
+                disabled={clearingTestData}
               >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    form.customer_display_enabled ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleClearTestTransactions}
+                disabled={clearingTestData}
+                className="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-950 bg-gradient-to-r from-cyan-400 to-emerald-400 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-cyan-500/25"
+              >
+                {clearingTestData ? 'Cleaning…' : 'Confirm & Reset'}
               </button>
             </div>
           </div>
         </div>
-
-        <button onClick={handleSaveSettings} disabled={saving} className="btn-primary w-full sm:w-auto">
-          <Save size={16} />
-          {saving ? 'Saving…' : 'Save Settings'}
-        </button>
-      </div>
-
-      {/* ── Service Categories ── */}
-      <div className="page-card p-6 space-y-4">
-        <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
-          Service Categories
-        </h2>
-        <div className="space-y-2">
-          {categories.map(cat => (
-            <div
-              key={cat.id}
-              className="flex items-center gap-3 py-2 px-3 rounded-xl border border-slate-100 dark:border-dark-800 hover:border-slate-200 dark:hover:border-dark-700 bg-white dark:bg-dark-900 transition-colors"
-            >
-              <GripVertical size={14} className="text-slate-300 dark:text-dark-600 flex-shrink-0" />
-              <span className={`flex-1 text-sm font-medium ${cat.is_active ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400 line-through'}`}>
-                {cat.name}
-              </span>
-              <button
-                onClick={() => handleToggleCategory(cat)}
-                className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${
-                  cat.is_active
-                    ? 'bg-brand-50 dark:bg-brand-950/70 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800'
-                    : 'bg-slate-100 dark:bg-dark-800 text-slate-500'
-                }`}
-              >
-                {cat.is_active ? 'Active' : 'Inactive'}
-              </button>
-              <button
-                onClick={() => handleDeleteCategory(cat.id)}
-                className="btn-icon text-rose-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex gap-2 pt-2">
-          <input
-            type="text"
-            value={newCat}
-            onChange={e => setNewCat(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleAddCategory()}
-            placeholder="New service category name…"
-            className="form-input flex-1"
-          />
-          <button onClick={handleAddCategory} className="btn-primary px-4">
-            <Plus size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* ── Change Password ── */}
-      <div className="page-card p-6 space-y-4">
-        <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide flex items-center gap-2">
-          <KeyRound size={14} className="text-brand-600 dark:text-brand-400" /> Change Administrator Password
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="form-label">New Password</label>
-            <input
-              type="password"
-              value={pwdForm.newPwd}
-              onChange={e => setPwdForm(f => ({ ...f, newPwd: e.target.value }))}
-              className="form-input"
-              placeholder="Min. 8 characters"
-              minLength={8}
-            />
-          </div>
-          <div>
-            <label className="form-label">Confirm Password</label>
-            <input
-              type="password"
-              value={pwdForm.confirmPwd}
-              onChange={e => setPwdForm(f => ({ ...f, confirmPwd: e.target.value }))}
-              className="form-input"
-              placeholder="Repeat new password"
-            />
-          </div>
-        </div>
-        <button onClick={handleChangePassword} disabled={changingPwd} className="btn-primary">
-          {changingPwd ? 'Updating…' : 'Update Password'}
-        </button>
-      </div>
+      )}
 
       {/* ─────────────────────────────────────────────────────────────
-          DANGER ZONE – CUSTOMER DATA MANAGEMENT
-      ───────────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border-2 border-rose-200 dark:border-rose-900/60 bg-rose-50/40 dark:bg-rose-950/20 p-6 space-y-4 shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
-            <AlertOctagon size={22} />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-rose-900 dark:text-rose-200">
-              Danger Zone – Customer Data Management
-            </h2>
-            <p className="text-xs text-rose-700/80 dark:text-rose-400/80 mt-1 leading-relaxed">
-              Permanently purge customer records, mobile numbers, and wallet balances from the system.
-              Shop configuration, services, and admin accounts are never touched.
-            </p>
-          </div>
-        </div>
-
-        <div className="pt-2">
-          <button
-            type="button"
-            onClick={openDangerZone}
-            className="btn-danger w-full sm:w-auto font-bold tracking-wide"
-          >
-            DELETE ALL CUSTOMER DATA
-          </button>
-        </div>
-      </div>
-
-      {/* ─────────────────────────────────────────────────────────────
-          MULTI-STEP DANGER ZONE MODAL
+          MODAL 2: MULTI-STEP DANGER ZONE (RESET CUSTOMER DATA)
       ───────────────────────────────────────────────────────────── */}
       {showDangerModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white dark:bg-dark-900 rounded-3xl shadow-2xl border border-rose-200 dark:border-rose-900/70 max-w-lg w-full overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="bg-slate-900 rounded-3xl shadow-2xl border border-rose-500/40 max-w-lg w-full overflow-hidden">
             {/* Modal Header */}
-            <div className="px-6 py-4 bg-rose-50/80 dark:bg-rose-950/50 border-b border-rose-100 dark:border-rose-900/60 flex items-center justify-between">
+            <div className="px-6 py-4 bg-rose-950/60 border-b border-rose-500/30 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <AlertTriangle size={20} className="text-rose-600 dark:text-rose-400" />
-                <h3 className="text-base font-bold text-rose-950 dark:text-rose-200">
+                <AlertTriangle size={20} className="text-rose-400" />
+                <h3 className="text-base font-bold text-rose-200">
                   Delete All Customer Data
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={closeDangerZone}
-                className="text-rose-400 hover:text-rose-600 dark:hover:text-rose-200"
+                className="text-rose-400 hover:text-rose-200"
               >
                 <X size={18} />
               </button>
@@ -606,7 +971,7 @@ export default function SettingsPage() {
               {/* Step indicator */}
               <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
                 <span>Step {dangerStep} of 4</span>
-                <span className="text-rose-600 dark:text-rose-400">
+                <span className="text-rose-400">
                   {dangerStep === 1 && 'Impact Assessment'}
                   {dangerStep === 2 && 'Phrase Confirmation'}
                   {dangerStep === 3 && 'Admin Re-Authentication'}
@@ -617,35 +982,34 @@ export default function SettingsPage() {
               {/* STEP 1: WARNING & SCOPE */}
               {dangerStep === 1 && (
                 <div className="space-y-4 animate-fade-in">
-                  <div className="p-4 bg-rose-100/70 dark:bg-rose-950/80 rounded-2xl border border-rose-200 dark:border-rose-900/60 text-xs text-rose-900 dark:text-rose-200 leading-relaxed font-medium">
-                    ⚠️ <strong>WARNING:</strong> This action will permanently remove all customer records and associated customer-related information. This operation cannot be undone.
+                  <div className="p-4 bg-rose-950/80 rounded-2xl border border-rose-500/40 text-xs text-rose-200 leading-relaxed font-medium">
+                    ⚠️ <strong>WARNING:</strong> This action permanently purges all customer phone records, names, and cashback balances from the system.
                   </div>
 
                   <div className="space-y-2 text-xs">
-                    <p className="font-semibold text-slate-700 dark:text-slate-300">What will be removed:</p>
-                    <ul className="list-disc pl-5 text-slate-600 dark:text-slate-400 space-y-1">
+                    <p className="font-semibold text-white">What will be removed:</p>
+                    <ul className="list-disc pl-5 text-slate-400 space-y-1">
                       <li>All customer names, mobile numbers, and records</li>
                       <li>All customer wallet balances and cashback accounts</li>
                       <li>Customer cashback reward ledger entries</li>
                     </ul>
 
-                    <p className="font-semibold text-slate-700 dark:text-slate-300 pt-2">What is strictly preserved:</p>
-                    <ul className="list-disc pl-5 text-brand-700 dark:text-brand-300 space-y-1">
+                    <p className="font-semibold text-white pt-2">What is strictly preserved:</p>
+                    <ul className="list-disc pl-5 text-cyan-300 space-y-1">
                       <li>Administrator credentials & login access</li>
                       <li>Shop settings & cashback rules</li>
                       <li>Service categories & POS configurations</li>
-                      <li>Historical accounting transaction totals (fully anonymized)</li>
                     </ul>
                   </div>
 
                   <div className="flex gap-3 pt-3">
-                    <button type="button" onClick={closeDangerZone} className="btn-secondary flex-1">
+                    <button type="button" onClick={closeDangerZone} className="flex-1 py-2.5 px-4 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-all">
                       Cancel
                     </button>
                     <button
                       type="button"
                       onClick={() => setDangerStep(2)}
-                      className="btn-danger flex-1"
+                      className="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 transition-all"
                     >
                       I Understand, Proceed →
                     </button>
@@ -656,11 +1020,11 @@ export default function SettingsPage() {
               {/* STEP 2: REQUIRED PHRASE MATCH */}
               {dangerStep === 2 && (
                 <div className="space-y-4 animate-fade-in">
-                  <p className="text-sm text-slate-700 dark:text-slate-300">
+                  <p className="text-sm text-slate-300">
                     To prevent accidental deletion, please type the following confirmation phrase in uppercase:
                   </p>
 
-                  <div className="p-3 bg-slate-100 dark:bg-dark-950 rounded-xl font-mono text-center font-bold text-rose-600 dark:text-rose-400 text-sm tracking-wider select-all border border-slate-200 dark:border-dark-800">
+                  <div className="p-3 bg-slate-950 rounded-xl font-mono text-center font-bold text-rose-400 text-sm tracking-wider select-all border border-rose-500/30">
                     {REQUIRED_PHRASE}
                   </div>
 
@@ -670,20 +1034,20 @@ export default function SettingsPage() {
                       value={typedPhrase}
                       onChange={e => setTypedPhrase(e.target.value)}
                       placeholder="Type confirmation phrase here"
-                      className="form-input font-mono text-sm tracking-wider"
+                      className="w-full px-3.5 py-2.5 bg-slate-950 border border-white/10 focus:border-rose-400 rounded-xl font-mono text-sm tracking-wider text-white"
                       autoFocus
                     />
                   </div>
 
                   <div className="flex gap-3 pt-2">
-                    <button type="button" onClick={() => setDangerStep(1)} className="btn-secondary flex-1">
+                    <button type="button" onClick={() => setDangerStep(1)} className="flex-1 py-2.5 px-4 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-all">
                       Back
                     </button>
                     <button
                       type="button"
                       disabled={typedPhrase !== REQUIRED_PHRASE}
                       onClick={() => setDangerStep(3)}
-                      className="btn-danger flex-1"
+                      className="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 disabled:opacity-50 transition-all"
                     >
                       Verify Phrase →
                     </button>
@@ -694,11 +1058,11 @@ export default function SettingsPage() {
               {/* STEP 3: ADMINISTRATOR RE-AUTHENTICATION */}
               {dangerStep === 3 && (
                 <div className="space-y-4 animate-fade-in">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
-                    <Lock size={16} className="text-brand-600 dark:text-brand-400" />
+                  <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                    <Lock size={16} className="text-cyan-400" />
                     Administrator Re-Authentication
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-slate-400">
                     Confirm your administrator password for <strong>{user?.email || 'sivar75@gmail.com'}</strong> to proceed.
                   </p>
 
@@ -708,21 +1072,21 @@ export default function SettingsPage() {
                       value={adminPassword}
                       onChange={e => setAdminPassword(e.target.value)}
                       placeholder="Administrator Password"
-                      className="form-input"
+                      className="w-full px-3.5 py-2.5 bg-slate-950 border border-white/10 focus:border-cyan-400 rounded-xl text-sm text-white"
                       autoFocus
                       onKeyDown={e => e.key === 'Enter' && handleVerifyPassword()}
                     />
                   </div>
 
                   <div className="flex gap-3 pt-2">
-                    <button type="button" onClick={() => setDangerStep(2)} className="btn-secondary flex-1">
+                    <button type="button" onClick={() => setDangerStep(2)} className="flex-1 py-2.5 px-4 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-all">
                       Back
                     </button>
                     <button
                       type="button"
                       disabled={!adminPassword || authChecking}
                       onClick={handleVerifyPassword}
-                      className="btn-primary flex-1"
+                      className="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-cyan-400 to-emerald-400 disabled:opacity-50 transition-all"
                     >
                       {authChecking ? 'Verifying…' : 'Authenticate →'}
                     </button>
@@ -733,15 +1097,15 @@ export default function SettingsPage() {
               {/* STEP 4: FINAL EXECUTION */}
               {dangerStep === 4 && (
                 <div className="space-y-4 animate-fade-in text-center">
-                  <div className="w-16 h-16 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto shadow-inner">
+                  <div className="w-16 h-16 rounded-full bg-rose-950/80 border border-rose-500/40 text-rose-400 flex items-center justify-center mx-auto shadow-inner">
                     <ShieldCheck size={36} />
                   </div>
 
                   <div>
-                    <h4 className="text-base font-bold text-slate-900 dark:text-white">
+                    <h4 className="text-base font-bold text-white">
                       Final Authorization
                     </h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+                    <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
                       Administrator identity verified. Click below to permanently purge all customer data from the database.
                     </p>
                   </div>
@@ -750,7 +1114,7 @@ export default function SettingsPage() {
                     <button
                       type="button"
                       onClick={closeDangerZone}
-                      className="btn-secondary flex-1"
+                      className="flex-1 py-2.5 px-4 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-all"
                       disabled={isDeletingAll}
                     >
                       Cancel
@@ -759,7 +1123,7 @@ export default function SettingsPage() {
                       type="button"
                       onClick={handleExecuteBulkDeletion}
                       disabled={isDeletingAll}
-                      className="btn-danger flex-1 py-3 text-sm font-bold tracking-wide shadow-lg shadow-rose-600/30"
+                      className="flex-1 py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-rose-600 hover:bg-rose-500 disabled:opacity-50 transition-all shadow-lg shadow-rose-600/30"
                     >
                       {isDeletingAll ? 'Executing Deletion…' : 'PURGE ALL CUSTOMER DATA NOW'}
                     </button>

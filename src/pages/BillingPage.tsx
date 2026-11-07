@@ -632,88 +632,100 @@ export default function BillingPage() {
   const stepDisplay = ['Search', 'Register', 'Billing', 'Payment', 'Saved']
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="section-header">
-        <div>
-          <h1 className="section-title flex items-center gap-2">
-            <Receipt size={22} className="text-brand-600 dark:text-brand-400" /> New Bill
-          </h1>
-          <p className="section-subtitle">Point of Sale</p>
+    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#0b171d] via-[#0d1d24] to-[#071116] text-white relative overflow-hidden font-sans space-y-7">
+      {/* ── Ambient Background Glows (Cyber-Teal Glassmorphic V2) ── */}
+      <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
+      <div className="pointer-events-none absolute top-1/3 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-[140px]" />
+      <div className="pointer-events-none absolute -bottom-32 left-1/3 w-[500px] h-[500px] bg-violet-600/5 rounded-full blur-[160px]" />
+
+      <div className="max-w-2xl mx-auto space-y-6 relative z-10">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-teal-500/20 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/10">
+              <Receipt size={20} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-extrabold text-white tracking-tight">New Bill</h1>
+              <p className="text-xs text-slate-400 mt-0.5">Point of Sale & Real-Time Cashback Engine</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={resetBilling}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-white/10 hover:border-cyan-400/40 flex items-center gap-1.5 transition-all shadow-sm"
+            >
+              <RefreshCw size={13} /> Reset Form
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={resetBilling} className="btn-secondary text-xs flex items-center gap-1.5">
-            <RefreshCw size={14} /> Reset Form
-          </button>
-        </div>
-      </div>
 
-      {/* Interactive 3D Stepper Journey */}
-      <div className="p-2 sm:p-3 rounded-2xl bg-white/70 dark:bg-dark-900/70 backdrop-blur-md border border-slate-200/80 dark:border-dark-800 shadow-lg relative overflow-hidden">
-        <div className="flex items-center justify-between gap-1 sm:gap-2">
-          {stepLabels.map((s, i) => {
-            const isActive = step === s
-            const isCompleted = stepLabels.indexOf(step) > i
+        {/* Interactive 3D Stepper Journey */}
+        <div className="p-2 sm:p-3 rounded-2xl bg-slate-900/70 backdrop-blur-xl border border-white/10 shadow-2xl relative overflow-hidden">
+          <div className="flex items-center justify-between gap-1 sm:gap-2">
+            {stepLabels.map((s, i) => {
+              const isActive = step === s
+              const isCompleted = stepLabels.indexOf(step) > i
 
-            return (
-              <div key={s} className="flex items-center gap-1.5 sm:gap-2 flex-1">
-                <motion.div
-                  animate={isActive ? { scale: [1, 1.08, 1], y: -2 } : { scale: 1, y: 0 }}
-                  transition={isActive ? { repeat: Infinity, duration: 2.2, ease: 'easeInOut' } : { duration: 0.2 }}
-                  className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all ${
-                    isActive
-                      ? 'bg-gradient-to-tr from-brand-600 to-indigo-500 text-white shadow-[0_4px_16px_rgba(91,61,245,0.45)] ring-2 ring-brand-300 dark:ring-brand-500 border border-white/30 font-black'
-                      : isCompleted
-                      ? 'bg-emerald-500 text-white shadow-sm font-bold'
-                      : 'bg-slate-100 dark:bg-dark-800 text-slate-400 dark:text-slate-500 border border-transparent'
-                  }`}
-                >
-                  {isCompleted ? (
-                    <motion.div
-                      initial={{ scale: 0, rotate: -45 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                    >
-                      <Check size={14} strokeWidth={3} />
-                    </motion.div>
-                  ) : (
-                    <span>{i + 1}</span>
-                  )}
-                </motion.div>
-
-                <div className="hidden sm:block min-w-0">
-                  <p
-                    className={`text-[11px] font-semibold tracking-tight uppercase leading-tight truncate ${
+              return (
+                <div key={s} className="flex items-center gap-1.5 sm:gap-2 flex-1">
+                  <motion.div
+                    animate={isActive ? { scale: [1, 1.08, 1], y: -2 } : { scale: 1, y: 0 }}
+                    transition={isActive ? { repeat: Infinity, duration: 2.2, ease: 'easeInOut' } : { duration: 0.2 }}
+                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all ${
                       isActive
-                        ? 'text-brand-700 dark:text-brand-300 font-extrabold'
+                        ? 'bg-gradient-to-tr from-cyan-400 via-teal-300 to-emerald-400 text-slate-950 shadow-[0_4px_16px_rgba(0,242,254,0.45)] ring-2 ring-cyan-400 border border-white/40 font-black'
                         : isCompleted
-                        ? 'text-emerald-600 dark:text-emerald-400 font-medium'
-                        : 'text-slate-400 dark:text-dark-500'
+                        ? 'bg-emerald-500 text-white shadow-sm font-bold'
+                        : 'bg-slate-950/70 text-slate-500 border border-white/5'
                     }`}
                   >
-                    {stepDisplay[i]}
-                  </p>
-                </div>
+                    {isCompleted ? (
+                      <motion.div
+                        initial={{ scale: 0, rotate: -45 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                      >
+                        <Check size={14} strokeWidth={3} />
+                      </motion.div>
+                    ) : (
+                      <span>{i + 1}</span>
+                    )}
+                  </motion.div>
 
-                {i < stepLabels.length - 1 && (
-                  <div className="flex-1 h-1 rounded-full overflow-hidden bg-slate-200 dark:bg-dark-800 ml-1">
-                    <motion.div
-                      className={`h-full ${
-                        isCompleted ? 'bg-emerald-500' : 'bg-transparent'
+                  <div className="hidden sm:block min-w-0">
+                    <p
+                      className={`text-[11px] font-semibold tracking-tight uppercase leading-tight truncate ${
+                        isActive
+                          ? 'text-cyan-300 font-extrabold'
+                          : isCompleted
+                          ? 'text-emerald-400 font-medium'
+                          : 'text-slate-500'
                       }`}
-                      initial={{ width: 0 }}
-                      animate={{ width: isCompleted ? '100%' : '0%' }}
-                      transition={{ duration: 0.4 }}
-                    />
+                    >
+                      {stepDisplay[i]}
+                    </p>
                   </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </div>
 
-      <div className="page-card p-6 space-y-5 !overflow-visible">
+                  {i < stepLabels.length - 1 && (
+                    <div className="flex-1 h-1 rounded-full overflow-hidden bg-slate-800 ml-1">
+                      <motion.div
+                        className={`h-full ${
+                          isCompleted ? 'bg-emerald-400' : 'bg-transparent'
+                        }`}
+                        initial={{ width: 0 }}
+                        animate={{ width: isCompleted ? '100%' : '0%' }}
+                        transition={{ duration: 0.4 }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl space-y-5 !overflow-visible">
         {/* ── Step 1: Clean Mobile Number Search (Strictly placeholder "Enter 10-digit mobile number") ── */}
         {step === 'mobile' && (
           <div className="space-y-4 animate-fade-in">
@@ -1605,5 +1617,6 @@ export default function BillingPage() {
         )}
       </div>
     </div>
-  )
+  </div>
+)
 }

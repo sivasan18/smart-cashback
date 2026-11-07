@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react'
-import { Download, BarChart3, Filter } from 'lucide-react'
+import { useState, useCallback, useMemo } from 'react'
+import { Download, BarChart3, Filter, Calendar, TrendingUp, Sparkles, Receipt, Wallet, Coins } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/cashback'
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
@@ -48,6 +48,7 @@ export default function ReportsPage() {
     let query = supabase
       .from('transactions')
       .select('*, customers(name, mobile)')
+      .eq('status', 'completed')
       .gte('created_at', from)
       .lte('created_at', to)
       .order('created_at', { ascending: false })
@@ -56,10 +57,6 @@ export default function ReportsPage() {
       query = query.gt('cashback_earned', 0)
     } else if (reportType === 'cashback_redeemed') {
       query = query.gt('cashback_redeemed', 0)
-    }
-
-    if (reportType !== 'outstanding') {
-      query = query.eq('status', 'completed')
     }
 
     const { data, error } = await query.limit(500)
@@ -101,21 +98,22 @@ export default function ReportsPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `smart-cashback-report-${format(new Date(), 'yyyy-MM-dd')}.csv`
+    a.download = `smart-cashback-report-${reportType}-${format(new Date(), 'yyyy-MM-dd')}.csv`
     a.click()
     URL.revokeObjectURL(url)
-    toast.success('Report exported successfully')
+    toast.success('Report exported as CSV')
   }
 
-  const totals = {
-    sales: rows.reduce((s, r) => s + r.amount_paid, 0),
-    cashbackIssued: rows.reduce((s, r) => s + r.cashback_earned, 0),
-    cashbackRedeemed: rows.reduce((s, r) => s + r.cashback_redeemed, 0),
-    bills: rows.reduce((s, r) => s + r.bill_amount, 0),
-  }
+  const totals = useMemo(() => {
+    const sales = rows.reduce((s, r) => s + (r.amount_paid || 0), 0)
+    const grossBills = rows.reduce((s, r) => s + (r.bill_amount || 0), 0)
+    const cashbackIssued = rows.reduce((s, r) => s + (r.cashback_earned || 0), 0)
+    const cashbackRedeemed = rows.reduce((s, r) => s + (r.cashback_redeemed || 0), 0)
+    return { sales, grossBills, cashbackIssued, cashbackRedeemed }
+  }, [rows])
 
   const REPORT_TYPES: { value: ReportType; label: string }[] = [
-    { value: 'daily', label: "Today's Sales" },
+    { value: 'daily', label: 'Today' },
     { value: 'weekly', label: 'This Week' },
     { value: 'monthly', label: 'This Month' },
     { value: 'custom', label: 'Custom Range' },
@@ -125,35 +123,67 @@ export default function ReportsPage() {
   ]
 
   return (
-    <div className="space-y-6">
-      <div className="section-header">
+    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#0b171d] via-[#0d1d24] to-[#071116] text-white relative overflow-hidden font-sans space-y-7">
+      {/* ── Ambient Background Glows (Cyber-Teal Glassmorphic V2) ── */}
+      <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
+      <div className="pointer-events-none absolute top-1/3 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-[140px]" />
+      <div className="pointer-events-none absolute -bottom-32 left-1/3 w-[500px] h-[500px] bg-violet-600/5 rounded-full blur-[160px]" />
+
+      {/* ── Top Bar Header ── */}
+      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/5">
         <div>
-          <h1 className="section-title flex items-center gap-2">
-            <BarChart3 size={22} className="text-brand-600 dark:text-brand-400" /> Reports
-          </h1>
-          <p className="section-subtitle">Sales revenue, cashback issuance and transaction audit logs</p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-teal-500/20 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/10">
+              <BarChart3 size={20} />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                Audit Reports & Analytics
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+                Financial statements, cashback issuance ledgers, and transaction exports
+              </p>
+            </div>
+          </div>
         </div>
-        {rows.length > 0 && (
-          <button onClick={exportCSV} className="btn-secondary">
-            <Download size={16} /> Export CSV
-          </button>
-        )}
+
+        <div className="flex items-center gap-3">
+          {rows.length > 0 && (
+            <button
+              onClick={exportCSV}
+              className="group relative inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-950 bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-400/50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            >
+              <Download size={15} />
+              <span>Export CSV</span>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Filter panel */}
-      <div className="page-card p-5 space-y-4">
-        <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-          <Filter size={14} className="text-brand-600 dark:text-brand-400" /> Report Filters
-        </h2>
+      {/* ── Filter Glass Card ── */}
+      <div className="relative z-10 bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-cyan-400/30 rounded-2xl p-6 shadow-2xl transition-all duration-300 space-y-4">
+        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="flex items-center gap-2">
+            <Filter size={16} className="text-cyan-400" />
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+              Select Timeframe & Filter Criteria
+            </h2>
+          </div>
+          <span className="text-xs text-slate-400 font-mono">
+            {format(new Date(), 'dd MMM yyyy')}
+          </span>
+        </div>
+
+        {/* Timeframe Filter Pills */}
         <div className="flex flex-wrap gap-2">
           {REPORT_TYPES.map(({ value, label }) => (
             <button
               key={value}
               onClick={() => setReportType(value)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
                 reportType === value
-                  ? 'bg-brand-600 text-white border-brand-600 dark:bg-brand-500 shadow-sm'
-                  : 'bg-white dark:bg-dark-850 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-dark-700 hover:border-brand-400 dark:hover:border-brand-500'
+                  ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-300 border border-cyan-400/40 shadow-sm shadow-cyan-500/20'
+                  : 'bg-slate-950/60 text-slate-400 hover:text-white border border-white/10 hover:border-white/20'
               }`}
             >
               {label}
@@ -161,25 +191,26 @@ export default function ReportsPage() {
           ))}
         </div>
 
+        {/* Custom Date Pickers */}
         {(reportType === 'custom' || reportType === 'cashback_issued' || reportType === 'cashback_redeemed' || reportType === 'outstanding') && (
-          <div className="flex flex-wrap gap-3 items-end pt-1">
+          <div className="flex flex-wrap gap-4 items-end pt-2 border-t border-white/10">
             <div>
-              <label className="form-label">From Date</label>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">From Date</label>
               <input
                 type="date"
                 value={fromDate}
                 onChange={e => setFromDate(e.target.value)}
-                className="form-input"
+                className="px-3.5 py-2 bg-slate-950 border border-white/10 focus:border-cyan-400 rounded-xl text-xs text-white"
                 max={toDate}
               />
             </div>
             <div>
-              <label className="form-label">To Date</label>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">To Date</label>
               <input
                 type="date"
                 value={toDate}
                 onChange={e => setToDate(e.target.value)}
-                className="form-input"
+                className="px-3.5 py-2 bg-slate-950 border border-white/10 focus:border-cyan-400 rounded-xl text-xs text-white"
                 min={fromDate}
                 max={format(new Date(), 'yyyy-MM-dd')}
               />
@@ -187,80 +218,106 @@ export default function ReportsPage() {
           </div>
         )}
 
-        <button onClick={runReport} className="btn-primary" disabled={loading}>
-          {loading ? (
-            <span className="flex items-center gap-2">
-              <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Loading…
-            </span>
-          ) : 'Run Report'}
-        </button>
+        <div className="pt-2 flex justify-start">
+          <button
+            onClick={runReport}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-950 bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 shadow-md shadow-cyan-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+            disabled={loading}
+          >
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <span className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" /> Generating…
+              </span>
+            ) : (
+              <>
+                <Sparkles size={14} />
+                <span>Run Report</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Summary cards */}
+      {/* ── KPI Summary Cards (Triggered after run) ── */}
       {hasRun && !loading && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in">
-          {[
-            { label: 'Total Sales', value: formatCurrency(totals.sales), className: 'text-brand-700 dark:text-brand-300' },
-            { label: 'Cashback Issued', value: formatCurrency(totals.cashbackIssued), className: 'text-brand-600 dark:text-brand-400' },
-            { label: 'Cashback Redeemed', value: formatCurrency(totals.cashbackRedeemed), className: 'text-slate-700 dark:text-slate-300' },
-            { label: 'Transactions', value: rows.length.toString(), className: 'text-brand-800 dark:text-brand-200' },
-          ].map(({ label, value, className }, i) => (
-            <div key={i} className="stat-card">
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{label}</p>
-              <p className={`text-xl font-bold mt-1 ${className}`}>{value}</p>
-            </div>
-          ))}
+        <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in">
+          <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Sales Paid</span>
+            <p className="text-3xl font-black text-white mt-2">{formatCurrency(totals.sales)}</p>
+            <p className="text-[11px] text-cyan-300 mt-1">Gross bills: {formatCurrency(totals.grossBills)}</p>
+          </div>
+
+          <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cashback Issued</span>
+            <p className="text-3xl font-black text-emerald-400 mt-2">+{formatCurrency(totals.cashbackIssued)}</p>
+            <p className="text-[11px] text-emerald-400/80 mt-1">Loyalty rewards distributed</p>
+          </div>
+
+          <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cashback Redeemed</span>
+            <p className="text-3xl font-black text-amber-400 mt-2">−{formatCurrency(totals.cashbackRedeemed)}</p>
+            <p className="text-[11px] text-amber-400/80 mt-1">Customer wallet redemptions</p>
+          </div>
+
+          <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Transactions Run</span>
+            <p className="text-3xl font-black text-cyan-300 mt-2">{rows.length}</p>
+            <p className="text-[11px] text-slate-400 mt-1">Completed records in range</p>
+          </div>
         </div>
       )}
 
-      {/* Results table */}
+      {/* ── Results Glass Table ── */}
       {hasRun && !loading && (
-        <div className="page-card overflow-x-auto animate-fade-in">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Customer</th>
-                <th>Mobile</th>
-                <th>Service</th>
-                <th>Bill Amount</th>
-                <th>Redeemed</th>
-                <th>Paid</th>
-                <th>Earned</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.length === 0 && (
-                <tr>
-                  <td colSpan={9} className="text-center py-12 text-slate-400 text-sm">
-                    No transactions found for the selected period.
-                  </td>
+        <div className="relative z-10 bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead>
+                <tr className="bg-white/[0.03] border-b border-white/10 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  <th className="px-5 py-4">Date & Time</th>
+                  <th className="px-5 py-4">Customer</th>
+                  <th className="px-5 py-4">Mobile</th>
+                  <th className="px-5 py-4">Service</th>
+                  <th className="px-5 py-4">Bill Amount</th>
+                  <th className="px-5 py-4">Redeemed</th>
+                  <th className="px-5 py-4">Amount Paid</th>
+                  <th className="px-5 py-4">Cashback Earned</th>
+                  <th className="px-5 py-4">Status</th>
                 </tr>
-              )}
-              {rows.map(r => (
-                <tr key={r.id}>
-                  <td className="text-xs font-mono text-slate-500">
-                    {format(new Date(r.created_at), 'dd/MM/yyyy HH:mm')}
-                  </td>
-                  <td className="font-semibold text-slate-900 dark:text-white text-xs">{r.customer_name}</td>
-                  <td className="font-mono text-xs text-slate-500">{r.customer_mobile}</td>
-                  <td className="text-xs text-slate-800 dark:text-slate-200">{r.service_category}</td>
-                  <td className="text-xs font-medium">{formatCurrency(r.bill_amount)}</td>
-                  <td className="text-xs text-orange-600 dark:text-orange-400 font-medium">
-                    {r.cashback_redeemed > 0 ? `−${formatCurrency(r.cashback_redeemed)}` : '—'}
-                  </td>
-                  <td className="text-xs font-bold text-slate-900 dark:text-white">{formatCurrency(r.amount_paid)}</td>
-                  <td className="text-xs text-brand-600 dark:text-brand-400 font-semibold">+{formatCurrency(r.cashback_earned)}</td>
-                  <td>
-                    <span className={`badge ${r.status === 'completed' ? 'badge-green' : r.status === 'cancelled' ? 'badge-red' : 'badge-yellow'}`}>
-                      {r.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="text-center py-16 text-slate-400 text-sm">
+                      No completed transactions recorded for this selected timeframe.
+                    </td>
+                  </tr>
+                ) : (
+                  rows.map(r => (
+                    <tr key={r.id} className="hover:bg-white/[0.03] transition-colors">
+                      <td className="px-5 py-4 text-xs text-slate-400 font-mono">
+                        {format(new Date(r.created_at), 'dd/MM/yyyy HH:mm')}
+                      </td>
+                      <td className="px-5 py-4 font-bold text-white">{r.customer_name}</td>
+                      <td className="px-5 py-4 font-mono text-cyan-300">{r.customer_mobile}</td>
+                      <td className="px-5 py-4 text-slate-300">{r.service_category}</td>
+                      <td className="px-5 py-4 font-medium text-slate-200">{formatCurrency(r.bill_amount)}</td>
+                      <td className="px-5 py-4 text-amber-400 font-medium">
+                        {r.cashback_redeemed > 0 ? `− ${formatCurrency(r.cashback_redeemed)}` : '—'}
+                      </td>
+                      <td className="px-5 py-4 font-bold text-white">{formatCurrency(r.amount_paid)}</td>
+                      <td className="px-5 py-4 font-bold text-emerald-400">+{formatCurrency(r.cashback_earned)}</td>
+                      <td className="px-5 py-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                          {r.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
