@@ -34,6 +34,7 @@ export interface Transaction {
   cashback_redeemed: number
   amount_paid: number
   cashback_earned: number
+  payment_method?: 'cash' | 'upi' | string
   status: 'completed' | 'cancelled' | 'reversed'
   notes?: string
   created_at: string
