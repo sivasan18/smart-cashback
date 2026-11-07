@@ -5,7 +5,7 @@ import {
   Search, ArrowRight, ArrowUpRight, Flame,
   Sparkles, QrCode, Banknote, Calendar,
   PieChart, Activity, Zap, CheckCircle2,
-  ChevronRight, Clock, ShieldCheck
+  ChevronRight, Clock, ShieldCheck, UserPlus
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { formatCurrency, normalizeMobile } from '@/lib/cashback'
@@ -14,7 +14,7 @@ import {
   format, subDays, subMonths, startOfDay, endOfDay,
   startOfMonth, endOfMonth, isWithinInterval
 } from 'date-fns'
-import type { Transaction, Customer } from '@/types'
+import type { Transaction, Customer, ServiceCategory } from '@/types'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -63,12 +63,12 @@ export default function DashboardPage() {
   const [dateRange, setDateRange] = useState<DateRangeFilter>('today')
   const [timeframe, setTimeframe] = useState<ChartTimeframe>('Week')
   const [loading, setLoading] = useState(true)
-  const [searchMobile, setSearchMobile] = useState('')
 
   // Aggregated Data
   const [allTransactions, setAllTransactions] = useState<(Transaction & { customer_name: string; customer_mobile: string })[]>([])
   const [allCustomers, setAllCustomers] = useState<Customer[]>([])
   const [todayTransactions, setTodayTransactions] = useState<(Transaction & { customer_name: string; customer_mobile: string })[]>([])
+  const [serviceCategories, setServiceCategories] = useState<ServiceCategory[]>([])
 
   // Dynamic greeting based on current time
   const greeting = useMemo(() => {
@@ -87,7 +87,7 @@ export default function DashboardPage() {
     const todayStart = startOfDay(today).toISOString()
     const todayEnd = endOfDay(today).toISOString()
 
-    const [txRes, customersRes, todayTxRes] = await Promise.all([
+    const [txRes, customersRes, todayTxRes, categoriesRes] = await Promise.all([
       supabase
         .from('transactions')
         .select('*, customers(name, mobile)')
@@ -105,6 +105,11 @@ export default function DashboardPage() {
         .gte('created_at', todayStart)
         .lte('created_at', todayEnd)
         .order('created_at', { ascending: false }),
+      supabase
+        .from('service_categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order'),
     ])
 
     const formattedTx = (txRes.data ?? []).map((t: Record<string, unknown>) => ({
@@ -122,6 +127,7 @@ export default function DashboardPage() {
     setAllTransactions(formattedTx)
     setTodayTransactions(formattedTodayTx)
     setAllCustomers((customersRes.data as Customer[]) ?? [])
+    setServiceCategories((categoriesRes.data as ServiceCategory[]) ?? [])
     setLoading(false)
   }, [])
 
@@ -155,6 +161,25 @@ export default function DashboardPage() {
     return allTransactions
   }, [allTransactions, dateRange])
 
+  // Customer Metrics: Registered, New Today, and Active Footfall
+  const customerMetrics = useMemo(() => {
+    const todayStart = startOfDay(new Date())
+    const totalRegistered = allCustomers.length
+    const newCustomersToday = allCustomers.filter(c => {
+      if (!c.created_at) return false
+      return new Date(c.created_at) >= todayStart
+    }).length
+    const activeFootfallToday = new Set(
+      todayTransactions.map(t => t.customer_id || t.customer_mobile || t.id)
+    ).size
+
+    return {
+      totalRegistered,
+      newCustomersToday,
+      activeFootfallToday,
+    }
+  }, [allCustomers, todayTransactions])
+
   // 4 KPI Stats computation
   const kpiStats = useMemo(() => {
     const targetSet = dateRange === 'today' ? todayTransactions : filteredRangeTransactions
@@ -172,7 +197,7 @@ export default function DashboardPage() {
     }
   }, [todayTransactions, filteredRangeTransactions, dateRange])
 
-  // Service Category Breakdown
+  // Service Category Breakdown (STRICTLY REAL VALUES, ZERO HARDCODED MOCKS)
   const categoryStats: CategoryStat[] = useMemo(() => {
     const colorPalette = [
       '#00f2fe', // Electric Cyan
@@ -183,39 +208,42 @@ export default function DashboardPage() {
       '#ec4899', // Hot Pink
     ]
 
-    const map: Record<string, { sales: number; count: number }> = {}
-    const dataset = allTransactions.length > 0 ? allTransactions : []
+    const targetSet = dateRange === 'today' ? todayTransactions : filteredRangeTransactions
 
-    dataset.forEach(t => {
+    const map: Record<string, { sales: number; count: number }> = {}
+
+    // Initialize with active service categories at strictly 0.0 sales and 0 count
+    serviceCategories.forEach(cat => {
+      map[cat.name] = { sales: 0, count: 0 }
+    })
+
+    // Accumulate actual completed transactions
+    targetSet.forEach(t => {
       const cat = t.service_category || 'General Service'
       if (!map[cat]) map[cat] = { sales: 0, count: 0 }
       map[cat].sales += t.amount_paid || 0
       map[cat].count += 1
     })
 
-    const totalSales = Object.values(map).reduce((s, c) => s + c.sales, 0) || 1
+    const totalSales = Object.values(map).reduce((s, c) => s + c.sales, 0)
 
     const list = Object.entries(map).map(([name, data], idx) => ({
       name,
       sales: data.sales,
       count: data.count,
-      percent: Math.round((data.sales / totalSales) * 100),
+      percent: totalSales > 0 ? Math.round((data.sales / totalSales) * 100) : 0,
       color: colorPalette[idx % colorPalette.length],
     }))
 
     // Sort descending by sales
     list.sort((a, b) => b.sales - a.sales)
 
-    if (list.length === 0) {
-      return [
-        { name: 'Xerox & Printing', sales: 450, count: 5, percent: 55, color: '#00f2fe' },
-        { name: 'Mobile Recharge', sales: 250, count: 3, percent: 30, color: '#10b981' },
-        { name: 'Lamination', sales: 120, count: 2, percent: 15, color: '#8b5cf6' },
-      ]
-    }
-
     return list
-  }, [allTransactions])
+  }, [todayTransactions, filteredRangeTransactions, serviceCategories, dateRange])
+
+  const hasCategorySales = useMemo(() => {
+    return categoryStats.some(c => c.sales > 0)
+  }, [categoryStats])
 
   // Financial & Cashback Flow Area Chart Data
   const areaChartData = useMemo(() => {
@@ -410,15 +438,42 @@ export default function DashboardPage() {
     }
   }, [areaChartData])
 
-  // Donut Chart Configuration
+  // Donut Chart Configuration (STRICTLY REAL VALUES, CLEAN 0 EMPTY STATE)
   const donutChartConfig = useMemo(() => {
+    if (!hasCategorySales) {
+      return {
+        data: {
+          labels: ['No Category Sales Recorded'],
+          datasets: [
+            {
+              data: [1],
+              backgroundColor: ['rgba(255, 255, 255, 0.05)'],
+              borderColor: '#0b171d',
+              borderWidth: 2,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '74%',
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false },
+          },
+        },
+      }
+    }
+
+    const activeList = categoryStats.filter(c => c.sales > 0)
+
     return {
       data: {
-        labels: categoryStats.map(c => c.name),
+        labels: activeList.map(c => c.name),
         datasets: [
           {
-            data: categoryStats.map(c => c.sales),
-            backgroundColor: categoryStats.map(c => c.color),
+            data: activeList.map(c => c.sales),
+            backgroundColor: activeList.map(c => c.color),
             borderColor: '#0b171d',
             borderWidth: 3,
             hoverOffset: 6,
@@ -440,7 +495,7 @@ export default function DashboardPage() {
             padding: 10,
             callbacks: {
               label: (context: any) => {
-                const item = categoryStats[context.dataIndex]
+                const item = activeList[context.dataIndex]
                 return ` ${context.label}: ₹${Number(context.raw || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${item?.percent || 0}%)`
               },
             },
@@ -448,13 +503,7 @@ export default function DashboardPage() {
         },
       },
     }
-  }, [categoryStats])
-
-  const handleWalletSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!searchMobile.trim()) return
-    navigate(`/wallet/lookup?mobile=${normalizeMobile(searchMobile.trim())}`)
-  }
+  }, [categoryStats, hasCategorySales])
 
   return (
     <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#0b171d] via-[#0d1d24] to-[#071116] text-white relative overflow-hidden font-sans space-y-7">
@@ -598,28 +647,34 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Card 4: Active Customer Footfall */}
-        <div className="group bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-violet-400/40 rounded-2xl p-5 shadow-2xl hover:shadow-violet-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+        {/* Card 4: Customer Footfall & Growth */}
+        <div className="group bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-violet-400/40 rounded-2xl p-5 shadow-2xl hover:shadow-violet-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col justify-between">
           <div className="absolute top-0 right-0 w-24 h-24 bg-violet-500/10 rounded-full blur-2xl group-hover:bg-violet-500/20 transition-all pointer-events-none" />
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Customer Footfall
-            </span>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-cyan-500/20 text-violet-400 border border-violet-500/30 flex items-center justify-center shadow-lg shadow-violet-500/10">
-              <Users size={20} />
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                Customer Footfall
+              </span>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-cyan-500/20 text-violet-400 border border-violet-500/30 flex items-center justify-center shadow-lg shadow-violet-500/10">
+                <Users size={20} />
+              </div>
+            </div>
+            <div className="mt-3">
+              <p className="text-3xl font-black text-white tracking-tight">
+                {customerMetrics.activeFootfallToday} <span className="text-sm font-semibold text-slate-400">Active Today</span>
+              </p>
             </div>
           </div>
-          <div className="mt-3">
-            <p className="text-3xl font-black text-white tracking-tight">
-              {kpiStats.footfall} <span className="text-sm font-semibold text-slate-400">Bills</span>
-            </p>
-            <div className="mt-2.5 flex items-center gap-2 text-xs">
-              <span className="inline-flex items-center gap-1 font-bold text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded-full text-[11px]">
-                <TrendingUp size={11} />
-                +8% Footfall
-              </span>
-              <span className="text-slate-400 text-[11px]">{allCustomers.length} Total Registered</span>
-            </div>
+
+          <div className="mt-3 pt-2.5 border-t border-white/5 flex flex-wrap items-center justify-between gap-1.5 text-xs">
+            <span className="inline-flex items-center gap-1 font-bold text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 px-2.5 py-0.5 rounded-full text-[11px]">
+              <Users size={11} />
+              {customerMetrics.totalRegistered} Total Registered
+            </span>
+            <span className="inline-flex items-center gap-1 font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 rounded-full text-[11px]">
+              <UserPlus size={11} />
+              +{customerMetrics.newCustomersToday} New Today
+            </span>
           </div>
         </div>
       </div>
@@ -830,20 +885,24 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ── RIGHT COLUMN (~30% Width): Category Donut, Progress Pills & Quick Wallet Search ── */}
+        {/* ── RIGHT COLUMN (~30% Width): Service Category Intelligence (Clean 0 Baseline, No Mock Data) ── */}
         <div className="lg:col-span-4 space-y-6">
           {/* Service Category Donut / Radial Ring Chart */}
-          <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-6 relative overflow-hidden">
+          <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-cyan-400/30 shadow-2xl rounded-2xl p-6 relative overflow-hidden transition-all duration-300">
             <div className="flex items-center justify-between pb-3 border-b border-white/5">
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <PieChart size={17} className="text-cyan-400" />
                   Category Breakdown
                 </h3>
-                <p className="text-xs text-slate-400">Revenue split across services</p>
+                <p className="text-xs text-slate-400">Revenue split across shop services</p>
               </div>
-              <span className="text-xs text-cyan-400 font-semibold bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-500/30">
-                Live
+              <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
+                hasCategorySales
+                  ? 'text-cyan-400 bg-cyan-950/60 border-cyan-500/30'
+                  : 'text-slate-500 bg-slate-950/60 border-white/5'
+              }`}>
+                {hasCategorySales ? 'Live Volume' : 'Clean Zero'}
               </span>
             </div>
 
@@ -852,23 +911,40 @@ export default function DashboardPage() {
               <Doughnut data={donutChartConfig.data} options={donutChartConfig.options} />
               {/* Cutout metric */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Top Service</span>
-                <span className="text-sm font-extrabold text-cyan-300 truncate max-w-[110px] text-center">
-                  {categoryStats[0]?.name || 'Printing'}
-                </span>
-                <span className="text-xs text-emerald-400 font-bold">
-                  {categoryStats[0]?.percent || 0}%
-                </span>
+                {hasCategorySales ? (
+                  <>
+                    <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Top Service</span>
+                    <span className="text-sm font-extrabold text-cyan-300 truncate max-w-[120px] text-center">
+                      {categoryStats[0]?.name || 'None'}
+                    </span>
+                    <span className="text-xs text-emerald-400 font-bold">
+                      {categoryStats[0]?.percent || 0}%
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Category Sales</span>
+                    <span className="text-sm font-black text-slate-400">₹0.00</span>
+                    <span className="text-[11px] text-slate-500 font-semibold">0%</span>
+                  </>
+                )}
               </div>
             </div>
 
-            {/* Quick Category Activity Pill List with Mini Progress Bars */}
+            {/* Category Activity Breakdown List */}
             <div className="mt-4 space-y-3 pt-3 border-t border-white/5">
-              {categoryStats.slice(0, 4).map(item => (
+              {!hasCategorySales && (
+                <div className="py-2.5 px-3 rounded-xl bg-slate-950/50 border border-white/5 text-center">
+                  <p className="text-xs text-slate-400 font-medium">No category sales recorded yet today</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Real-time split will populate as bills are saved</p>
+                </div>
+              )}
+
+              {categoryStats.slice(0, 5).map(item => (
                 <div key={item.name} className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-200 truncate flex items-center gap-2 max-w-[160px]">
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="font-semibold text-slate-200 truncate flex items-center gap-2 max-w-[170px]">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
                       {item.name}
                     </span>
                     <span className="text-slate-300 font-mono font-bold">
@@ -880,65 +956,14 @@ export default function DashboardPage() {
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
-                        width: `${Math.max(5, item.percent)}%`,
+                        width: `${item.percent}%`,
                         backgroundColor: item.color,
-                        boxShadow: `0 0 10px ${item.color}80`
+                        boxShadow: item.percent > 0 ? `0 0 10px ${item.color}80` : 'none'
                       }}
                     />
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Quick Customer Wallet Lookup Card */}
-          <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-6 relative overflow-hidden">
-            <div className="flex items-center justify-between pb-3 border-b border-white/5">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
-                  <Search size={14} />
-                </div>
-                <h3 className="text-sm font-bold text-white">Wallet Quick Lookup</h3>
-              </div>
-              <span className="text-[11px] text-slate-400">Direct Search</span>
-            </div>
-
-            <p className="text-xs text-slate-400 mt-3 leading-relaxed">
-              Verify customer cashback balances and instant redemption status before billing:
-            </p>
-
-            <form onSubmit={handleWalletSearch} className="mt-3 flex gap-2">
-              <div className="relative flex-1">
-                <input
-                  type="tel"
-                  maxLength={10}
-                  value={searchMobile}
-                  onChange={e => setSearchMobile(e.target.value)}
-                  placeholder="Enter 10-digit mobile"
-                  className="w-full bg-slate-950/80 border border-white/10 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/20 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 font-mono outline-none transition-all"
-                />
-              </div>
-              <button
-                type="submit"
-                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-slate-950 font-bold hover:shadow-lg hover:shadow-cyan-400/30 transition-all flex items-center justify-center flex-shrink-0"
-                title="Search Customer Wallet"
-              >
-                <ArrowRight size={15} />
-              </button>
-            </form>
-
-            <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs text-slate-400">
-              <span className="flex items-center gap-1.5 text-cyan-300 font-medium">
-                <ShieldCheck size={13} />
-                2% Reward Rule Active
-              </span>
-              <button
-                type="button"
-                onClick={() => navigate('/wallet/lookup')}
-                className="text-xs text-cyan-400 hover:underline font-semibold"
-              >
-                Full Wallet Directory →
-              </button>
             </div>
           </div>
         </div>
