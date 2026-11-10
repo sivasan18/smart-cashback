@@ -137,27 +137,28 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/customer-display" element={<CustomerDisplayPage />} />
 
+          {/* Root path: Immediately redirects to /billing */}
+          <Route path="/" element={<Navigate to="/billing" replace />} />
+
           {/* Protected Outlet & Admin Routes */}
           <Route
-            path="/"
             element={
               <ProtectedRoute>
                 <AppLayout />
               </ProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="/billing" replace />} />
-            <Route path="billing" element={<BillingPage />} />
-            <Route path="customers" element={<CustomersPage />} />
-            <Route path="customers/:id" element={<CustomerDetailPage />} />
-            <Route path="wallet" element={<WalletLookupPage />} />
-            <Route path="wallet/lookup" element={<WalletLookupPage />} />
-            <Route path="reports" element={<ReportsPage />} />
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="settings" element={<SettingsPage />} />
+            <Route path="/billing" element={<BillingPage />} />
+            <Route path="/customers" element={<CustomersPage />} />
+            <Route path="/customers/:id" element={<CustomerDetailPage />} />
+            <Route path="/wallet" element={<WalletLookupPage />} />
+            <Route path="/wallet/lookup" element={<WalletLookupPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
 
             {/* Shop ID branch routing fallback */}
-            <Route path="shop/:id" element={<Navigate to="/billing" replace />} />
+            <Route path="/shop/:id" element={<Navigate to="/billing" replace />} />
           </Route>
 
           {/* Catch-all redirect to New Bill */}

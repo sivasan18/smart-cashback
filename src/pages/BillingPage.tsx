@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
   Search, CheckCircle, Phone, ShoppingBag,
   Wallet, Calculator, Receipt, RefreshCw,
@@ -32,6 +32,26 @@ interface BillSummary {
 export default function BillingPage() {
   const { settings } = useSettingsStore()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // Login Success Toast notification badge
+  const [showLoginSuccess, setShowLoginSuccess] = useState(false)
+
+  useEffect(() => {
+    const isFromLogin =
+      (location.state as { loggedIn?: boolean; fromLogin?: boolean })?.fromLogin ||
+      (location.state as { loggedIn?: boolean; fromLogin?: boolean })?.loggedIn ||
+      sessionStorage.getItem('just_logged_in') === 'true'
+
+    if (isFromLogin) {
+      sessionStorage.removeItem('just_logged_in')
+      setShowLoginSuccess(true)
+      const timer = setTimeout(() => {
+        setShowLoginSuccess(false)
+      }, 3500)
+      return () => clearTimeout(timer)
+    }
+  }, [location.state])
 
   // Step & Customer State
   const [step, setStep] = useState<Step>('mobile')
@@ -642,23 +662,41 @@ export default function BillingPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-teal-500/20 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/10">
+            <div className="w-10 h-10 rounded-xl bg-amber-400/15 border border-amber-400/30 text-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/10">
               <Receipt size={20} />
             </div>
             <div>
               <h1 className="text-2xl font-extrabold text-white tracking-tight">New Bill</h1>
-              <p className="text-xs text-slate-400 mt-0.5">Point of Sale & Real-Time Cashback Engine</p>
+              <p className="text-xs text-neutral-400 mt-0.5">Point of Sale & Real-Time Cashback Engine</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={resetBilling}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-white/10 hover:border-cyan-400/40 flex items-center gap-1.5 transition-all shadow-sm"
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-neutral-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-white/10 hover:border-amber-400/40 flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
             >
               <RefreshCw size={13} /> Reset Form
             </button>
           </div>
         </div>
+
+        {/* Transient "Logged in successfully" notification badge on top-right directly below New Bill */}
+        <AnimatePresence>
+          {showLoginSuccess && (
+            <motion.div
+              initial={{ opacity: 0, y: -8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.96 }}
+              transition={{ duration: 0.28, ease: 'easeOut' }}
+              className="flex justify-end -mt-3 -mb-2"
+            >
+              <div className="bg-black/80 backdrop-blur-md border border-amber-500/30 text-amber-300 px-4 py-2 rounded-xl shadow-[0_0_15px_rgba(251,191,36,0.2)] text-sm font-medium flex items-center gap-2 select-none">
+                <CheckCircle2 size={16} className="text-emerald-400" />
+                <span>Logged in successfully</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Interactive 3D Stepper Journey */}
         <div className="p-2 sm:p-3 rounded-2xl bg-slate-900/70 backdrop-blur-xl border border-white/10 shadow-2xl relative overflow-hidden">

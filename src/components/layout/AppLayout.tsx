@@ -37,9 +37,10 @@ export default function AppLayout() {
   const location = useLocation()
 
   const handleSignOut = async () => {
+    sessionStorage.removeItem('just_logged_in')
     await signOut()
     toast.success('Signed out successfully')
-    navigate('/login')
+    navigate('/login', { replace: true })
   }
 
   const themeOptions: { value: ThemeMode; label: string; icon: typeof Sun }[] = [

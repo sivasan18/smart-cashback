@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Navigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import { Eye, EyeOff, Lock, Mail, Zap, AlertTriangle, ArrowRight, Loader2 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
   const { session, signIn, loading: authLoading } = useAuthStore()
+  const navigate = useNavigate()
 
   // Initial State is OFF (Lamp starts dark / locked)
   const [isLampOn, setIsLampOn] = useState(false)
@@ -23,8 +24,16 @@ export default function LoginPage() {
   const emailInputRef = useRef<HTMLInputElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  // Redirect if already authenticated
-  if (session) return <Navigate to="/billing" replace />
+  // Automatic redirect if already authenticated
+  useEffect(() => {
+    if (session) {
+      navigate('/billing', { replace: true })
+    }
+  }, [session, navigate])
+
+  if (session) {
+    return null
+  }
 
   // Realistic mechanical click synthesizer using Web Audio API
   const playLampClickSound = () => {
@@ -112,8 +121,9 @@ export default function LoginPage() {
       setStatusMessage({ type: 'error', text: error })
       toast.error(error)
     } else {
-      setStatusMessage({ type: 'success', text: `Welcome back! Signed in as ${email}` })
-      toast.success('Welcome back!')
+      setStatusMessage(null)
+      sessionStorage.setItem('just_logged_in', 'true')
+      navigate('/billing', { replace: true, state: { fromLogin: true, loggedIn: true } })
     }
   }
 
