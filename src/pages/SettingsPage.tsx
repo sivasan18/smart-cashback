@@ -334,24 +334,24 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#06080d] via-[#0b0f17] to-[#06080d] text-white relative overflow-hidden font-sans space-y-7">
-      {/* ── Ambient Background Glows (Dark Luxury Golden Aesthetic) ── */}
-      <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-amber-400/10 rounded-full blur-[120px] animate-pulse" />
-      <div className="pointer-events-none absolute top-1/3 -right-32 w-96 h-96 bg-amber-500/10 rounded-full blur-[140px]" />
-      <div className="pointer-events-none absolute -bottom-32 left-1/3 w-[500px] h-[500px] bg-amber-400/5 rounded-full blur-[160px]" />
+    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#0b171d] via-[#0d1d24] to-[#071116] text-white relative overflow-hidden font-sans space-y-7">
+      {/* ── Ambient Background Glows (Cyber-Teal Glassmorphic V2) ── */}
+      <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
+      <div className="pointer-events-none absolute top-1/3 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-[140px]" />
+      <div className="pointer-events-none absolute -bottom-32 left-1/3 w-[500px] h-[500px] bg-violet-600/5 rounded-full blur-[160px]" />
 
       {/* ── Header Title & Subtitle ── */}
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/5">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-400/15 border border-amber-400/30 text-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/10">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-teal-500/20 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/10">
               <Settings size={20} />
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                 Shop Settings & System Controls
               </h1>
-              <p className="text-xs sm:text-sm text-neutral-400 mt-0.5">
+              <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
                 Configure store rules, UPI payment gateways, secondary display, and administrative security
               </p>
             </div>
@@ -359,10 +359,10 @@ export default function SettingsPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-400/10 text-amber-300 border border-amber-400/30 shadow-sm shadow-amber-500/20">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-cyan-950/60 text-cyan-300 border border-cyan-500/30 shadow-sm shadow-cyan-500/20">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
             </span>
             Live Configuration
           </span>
@@ -372,16 +372,16 @@ export default function SettingsPage() {
       {/* ── ROW 1: CORE STORE & PAYMENT SETUP (BALANCED 2-COLUMN GRID) ── */}
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         {/* LEFT CARD: Shop Information & Rules */}
-        <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-amber-400/40 rounded-2xl p-6 shadow-2xl transition-all duration-300 relative flex flex-col justify-between">
+        <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-cyan-400/40 rounded-2xl p-6 shadow-2xl transition-all duration-300 relative flex flex-col justify-between">
           <div className="space-y-5">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-2.5">
-                <Store size={18} className="text-amber-400" />
+                <Store size={18} className="text-cyan-400" />
                 <h2 className="text-sm font-bold text-white uppercase tracking-wider">
                   Shop Information & Rules
                 </h2>
               </div>
-              <span className="text-[11px] font-semibold text-amber-300/80 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-md">
+              <span className="text-[11px] font-semibold text-cyan-300/80 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-md">
                 POS Identity
               </span>
             </div>

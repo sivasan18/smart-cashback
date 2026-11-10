@@ -125,24 +125,24 @@ export default function WalletLookupPage() {
   })
 
   return (
-    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#06080d] via-[#0b0f17] to-[#06080d] text-white relative overflow-hidden font-sans space-y-7">
-      {/* ── Ambient Background Glows (Dark Luxury Golden Aesthetic) ── */}
-      <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-amber-400/10 rounded-full blur-[120px] animate-pulse" />
-      <div className="pointer-events-none absolute top-1/3 -right-32 w-96 h-96 bg-amber-500/10 rounded-full blur-[140px]" />
-      <div className="pointer-events-none absolute -bottom-32 left-1/3 w-[500px] h-[500px] bg-amber-400/5 rounded-full blur-[160px]" />
+    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#0b171d] via-[#0d1d24] to-[#071116] text-white relative overflow-hidden font-sans space-y-7">
+      {/* ── Ambient Background Glows (Cyber-Teal Glassmorphic V2) ── */}
+      <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
+      <div className="pointer-events-none absolute top-1/3 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-[140px]" />
+      <div className="pointer-events-none absolute -bottom-32 left-1/3 w-[500px] h-[500px] bg-violet-600/5 rounded-full blur-[160px]" />
 
       {/* ── Header Title & Tab Switcher ── */}
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/5">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-400/15 border border-amber-400/30 text-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/10">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-teal-500/20 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/10">
               <Wallet size={20} />
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                 Cashback Wallet & VIP Pass
               </h1>
-              <p className="text-xs sm:text-sm text-neutral-400 mt-0.5">
+              <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
                 Monitor store-wide cashback liability and lookup customer pass balances
               </p>
             </div>
@@ -150,16 +150,16 @@ export default function WalletLookupPage() {
         </div>
 
         {/* Tab pill switcher */}
-        <div className="flex items-center gap-1.5 p-1 bg-black/50 backdrop-blur-md rounded-xl border border-white/10 shadow-inner">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-900/80 backdrop-blur-md rounded-xl border border-white/10 shadow-inner">
           <button
             onClick={() => {
               setActiveTab('overview')
               navigate('/wallet')
             }}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
               activeTab === 'overview'
-                ? 'bg-amber-400 text-neutral-950 font-bold shadow-sm shadow-amber-500/30'
-                : 'text-neutral-400 hover:text-white hover:bg-white/5 border border-transparent'
+                ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-300 border border-cyan-400/40 shadow-sm shadow-cyan-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
             }`}
           >
             Cashback Wallet Overview
@@ -169,10 +169,10 @@ export default function WalletLookupPage() {
               setActiveTab('lookup')
               navigate('/wallet/lookup')
             }}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
               activeTab === 'lookup'
-                ? 'bg-amber-400 text-neutral-950 font-bold shadow-sm shadow-amber-500/30'
-                : 'text-neutral-400 hover:text-white hover:bg-white/5 border border-transparent'
+                ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-300 border border-cyan-400/40 shadow-sm shadow-cyan-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
             }`}
           >
             Individual Wallet Lookup
@@ -187,40 +187,40 @@ export default function WalletLookupPage() {
         <div className="space-y-6 animate-fade-in relative z-10">
           {/* Top 4 KPI Glass Stat Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-amber-400/40 rounded-2xl p-5 shadow-2xl transition-all duration-300">
-              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Outstanding Liability</span>
+            <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-cyan-400/40 rounded-2xl p-5 shadow-2xl transition-all duration-300">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Outstanding Liability</span>
               <p className="text-3xl font-black text-white mt-2">{formatCurrency(walletStats.outstandingBalance)}</p>
-              <p className="text-[11px] text-amber-400 mt-1">Total circulating store credit</p>
+              <p className="text-[11px] text-cyan-300 mt-1">Total circulating store credit</p>
             </div>
 
-            <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-amber-400/40 rounded-2xl p-5 shadow-2xl transition-all duration-300">
-              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Total Cashback Issued</span>
+            <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-cyan-400/40 rounded-2xl p-5 shadow-2xl transition-all duration-300">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Cashback Issued</span>
               <p className="text-3xl font-black text-emerald-400 mt-2">+{formatCurrency(walletStats.totalIssued)}</p>
               <p className="text-[11px] text-emerald-400/80 mt-1">Cumulative earned by customers</p>
             </div>
 
-            <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-amber-400/40 rounded-2xl p-5 shadow-2xl transition-all duration-300">
-              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Total Cashback Used</span>
+            <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-cyan-400/40 rounded-2xl p-5 shadow-2xl transition-all duration-300">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Cashback Used</span>
               <p className="text-3xl font-black text-amber-400 mt-2">−{formatCurrency(walletStats.totalRedeemed)}</p>
               <p className="text-[11px] text-amber-400/80 mt-1">Redeemed against POS bills</p>
             </div>
 
-            <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-amber-400/40 rounded-2xl p-5 shadow-2xl transition-all duration-300">
-              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Active Wallets</span>
-              <p className="text-3xl font-black text-amber-300 mt-2">{walletStats.walletsWithBalance} / {allCustomers.length}</p>
-              <p className="text-[11px] text-neutral-400 mt-1">Patrons with positive balance</p>
+            <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-cyan-400/40 rounded-2xl p-5 shadow-2xl transition-all duration-300">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Wallets</span>
+              <p className="text-3xl font-black text-cyan-300 mt-2">{walletStats.walletsWithBalance} / {allCustomers.length}</p>
+              <p className="text-[11px] text-slate-400 mt-1">Patrons with positive balance</p>
             </div>
           </div>
 
           {/* Search bar */}
           <div className="relative max-w-md">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               type="text"
               value={overviewSearch}
               onChange={e => setOverviewSearch(e.target.value)}
               placeholder="Filter customer wallets by name or mobile…"
-              className="w-full pl-10 pr-4 py-2.5 bg-black/60 backdrop-blur-xl border border-white/10 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 rounded-xl text-sm text-white placeholder-neutral-500 transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-900/60 backdrop-blur-xl border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-white placeholder-slate-500 transition-colors"
             />
           </div>
 
@@ -229,7 +229,7 @@ export default function WalletLookupPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
                 <thead>
-                  <tr className="bg-white/[0.03] border-b border-white/10 text-xs font-semibold uppercase tracking-wider text-neutral-400">
+                  <tr className="bg-white/[0.03] border-b border-white/10 text-xs font-semibold uppercase tracking-wider text-slate-400">
                     <th className="px-5 py-4">Customer</th>
                     <th className="px-5 py-4">Mobile</th>
                     <th className="px-5 py-4">Available Wallet Balance</th>
@@ -241,9 +241,9 @@ export default function WalletLookupPage() {
                 <tbody className="divide-y divide-white/5">
                   {loadingOverview && (
                     <tr>
-                      <td colSpan={6} className="text-center py-12 text-neutral-400">
+                      <td colSpan={6} className="text-center py-12 text-slate-400">
                         <div className="flex justify-center items-center gap-2">
-                          <span className="w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                          <span className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
                           Loading wallet ledgers…
                         </div>
                       </td>
@@ -252,7 +252,7 @@ export default function WalletLookupPage() {
 
                   {!loadingOverview && filteredOverview.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="text-center py-16 text-neutral-400 text-sm">
+                      <td colSpan={6} className="text-center py-16 text-slate-400 text-sm">
                         No customer wallets found.
                       </td>
                     </tr>
@@ -262,15 +262,15 @@ export default function WalletLookupPage() {
                     <tr key={c.id} className="hover:bg-white/[0.03] transition-colors">
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-amber-400/15 text-amber-300 border border-amber-400/30 font-bold text-xs flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-bold text-xs flex items-center justify-center">
                             {c.name[0]?.toUpperCase() || 'C'}
                           </div>
                           <span className="font-bold text-white text-sm">{c.name}</span>
                         </div>
                       </td>
-                      <td className="px-5 py-4 font-mono text-amber-300">{c.mobile}</td>
+                      <td className="px-5 py-4 font-mono text-cyan-300">{c.mobile}</td>
                       <td className="px-5 py-4">
-                        <span className={`font-black text-sm ${c.cashback_balance > 0 ? 'text-amber-300 drop-shadow-[0_2px_8px_rgba(251,191,36,0.3)]' : 'text-neutral-500'}`}>
+                        <span className={`font-black text-sm ${c.cashback_balance > 0 ? 'text-cyan-300 drop-shadow-[0_2px_8px_rgba(0,242,254,0.3)]' : 'text-slate-500'}`}>
                           {formatCurrency(c.cashback_balance)}
                         </span>
                       </td>
@@ -283,7 +283,7 @@ export default function WalletLookupPage() {
                             setActiveTab('lookup')
                             navigate(`/wallet/lookup?mobile=${c.mobile}`)
                           }}
-                          className="inline-flex items-center gap-1.5 text-xs font-bold text-neutral-950 bg-amber-400 hover:bg-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.3)] px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-300 hover:text-cyan-200 bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-500/30 px-3 py-1.5 rounded-lg transition-all"
                         >
                           <span>Open Pass</span>
                           <ArrowRight size={13} />
@@ -304,9 +304,9 @@ export default function WalletLookupPage() {
       {activeTab === 'lookup' && (
         <div className="space-y-6 animate-fade-in relative z-10 max-w-3xl mx-auto">
           {/* Lookup Input Card */}
-          <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-amber-400/40 rounded-2xl p-6 shadow-2xl transition-all duration-300 space-y-4">
+          <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-cyan-400/40 rounded-2xl p-6 shadow-2xl transition-all duration-300 space-y-4">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <Search size={16} className="text-amber-400" />
+              <Search size={16} className="text-cyan-400" />
               Customer Wallet & Balance Lookup
             </h2>
 
@@ -326,7 +326,7 @@ export default function WalletLookupPage() {
                     setMobileError('')
                   }}
                   placeholder="Enter 10-digit customer mobile number"
-                  className="w-full px-4 py-2.5 bg-black/70 border border-white/10 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 rounded-xl text-base text-amber-300 font-mono tracking-wider transition-colors focus:outline-none"
+                  className="w-full px-4 py-2.5 bg-slate-950 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-base text-cyan-300 font-mono tracking-wider transition-colors"
                   maxLength={10}
                   autoFocus
                 />
@@ -334,7 +334,7 @@ export default function WalletLookupPage() {
               <button
                 type="submit"
                 disabled={loadingLookup}
-                className="px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-neutral-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 shadow-md shadow-amber-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
+                className="px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-950 bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 shadow-md shadow-cyan-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
               >
                 {loadingLookup ? 'Looking up…' : 'Lookup Pass'}
               </button>
@@ -345,7 +345,7 @@ export default function WalletLookupPage() {
           {/* Not found */}
           {searched && !loadingLookup && !customer && (
             <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 text-center animate-fade-in space-y-3">
-              <div className="w-12 h-12 rounded-full bg-black/60 text-neutral-400 flex items-center justify-center mx-auto text-xl">
+              <div className="w-12 h-12 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center mx-auto text-xl">
                 🔍
               </div>
               <p className="font-bold text-white text-base">No Customer Found</p>
