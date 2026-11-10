@@ -75,11 +75,11 @@ export default function CustomerDetailPage() {
   ]
 
   return (
-    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#0b171d] via-[#0d1d24] to-[#071116] text-white relative overflow-hidden font-sans space-y-7">
+    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#06080d] via-[#0b0f17] to-[#06080d] text-white relative overflow-hidden font-sans space-y-7">
       {/* ── Ambient Background Glows ── */}
-      <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
-      <div className="pointer-events-none absolute top-1/3 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-[140px]" />
-      <div className="pointer-events-none absolute -bottom-32 left-1/3 w-[500px] h-[500px] bg-violet-600/5 rounded-full blur-[160px]" />
+      <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-amber-400/10 rounded-full blur-[120px] animate-pulse" />
+      <div className="pointer-events-none absolute top-1/3 -right-32 w-96 h-96 bg-amber-500/10 rounded-full blur-[140px]" />
+      <div className="pointer-events-none absolute -bottom-32 left-1/3 w-[500px] h-[500px] bg-amber-400/5 rounded-full blur-[160px]" />
 
       <div className="max-w-4xl mx-auto space-y-6 relative z-10">
         {/* Header */}
@@ -87,19 +87,19 @@ export default function CustomerDetailPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate('/customers')}
-              className="w-9 h-9 rounded-xl bg-slate-900 border border-white/10 hover:border-cyan-400/40 text-slate-300 hover:text-white flex items-center justify-center transition-all"
+              className="w-9 h-9 rounded-xl bg-slate-900 border border-white/10 hover:border-amber-400/40 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer"
             >
               <ArrowLeft size={18} />
             </button>
             <div>
               <h1 className="text-2xl font-extrabold text-white tracking-tight">{customer.name}</h1>
-              <p className="text-xs text-slate-400 mt-0.5">
-                <span className="font-mono text-cyan-300">{customer.mobile}</span> · Registered {format(new Date(customer.created_at), 'dd MMMM yyyy')}
+              <p className="text-xs text-neutral-400 mt-0.5">
+                <span className="font-mono text-amber-300">{customer.mobile}</span> · Registered {format(new Date(customer.created_at), 'dd MMMM yyyy')}
               </p>
             </div>
           </div>
 
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-cyan-950/60 text-cyan-300 border border-cyan-500/30">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-400/15 text-amber-300 border border-amber-400/30">
             <ShieldCheck size={13} /> VIP Profile
           </span>
         </div>
@@ -120,30 +120,30 @@ export default function CustomerDetailPage() {
           {stats.map(({ label, value, icon: Icon, color }) => (
             <div key={label} className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-xl">
               <Icon size={18} className={`${color} mb-1`} />
-              <p className="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">{label}</p>
+              <p className="text-[11px] text-neutral-400 uppercase tracking-wider font-semibold">{label}</p>
               <p className={`text-xl font-black ${color} mt-1`}>{value}</p>
             </div>
           ))}
         </div>
 
         {/* Tab switcher */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-900/80 backdrop-blur-md rounded-xl border border-white/10 w-fit">
+        <div className="flex items-center gap-1.5 p-1 bg-black/50 backdrop-blur-md rounded-xl border border-white/10 w-fit">
           <button
             onClick={() => setTab('transactions')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
               tab === 'transactions'
-                ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-300 border border-cyan-400/40 shadow-sm shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-white border border-transparent'
+                ? 'bg-amber-400 text-neutral-950 font-bold shadow-sm shadow-amber-500/30'
+                : 'text-neutral-400 hover:text-white border border-transparent'
             }`}
           >
             Transactions
           </button>
           <button
             onClick={() => setTab('ledger')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
               tab === 'ledger'
-                ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-300 border border-cyan-400/40 shadow-sm shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-white border border-transparent'
+                ? 'bg-amber-400 text-neutral-950 font-bold shadow-sm shadow-amber-500/30'
+                : 'text-neutral-400 hover:text-white border border-transparent'
             }`}
           >
             Cashback Ledger

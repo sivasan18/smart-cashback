@@ -4,24 +4,31 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Smart Cashback – Xerox & Recharge Shop Customer Loyalty and Cashback Management System" />
-    <meta name="theme-color" content="#16a34a" />
-    <title>Smart Cashback – Shop Management</title>
+    <meta name="description" content="Smart Cashback – Xerox, Printing & Recharge Customer Loyalty & Cashback POS" />
+    <meta name="theme-color" content="#F59E0B" />
+    <title>Smart Cashback – Shop POS & Loyalty Engine</title>
+
+    <!-- Google Fonts: Plus Jakarta Sans, Inter, JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <meta name="color-scheme" content="light dark" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <meta name="color-scheme" content="dark light" />
     <script>
       (function() {
         try {
-          const t = localStorage.getItem('theme-preference') || 'system';
-          const isDark = t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          const t = localStorage.getItem('theme-preference') || 'dark';
+          const isDark = t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) || true;
           if (isDark) document.documentElement.classList.add('dark');
           else document.documentElement.classList.remove('dark');
         } catch (e) {}
       })();
     </script>
   </head>
-  <body>
+  <body class="bg-[#06080d] text-slate-100 antialiased selection:bg-amber-400 selection:text-black min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

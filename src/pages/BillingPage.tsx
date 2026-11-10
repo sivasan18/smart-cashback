@@ -966,7 +966,7 @@ export default function BillingPage() {
                         onClick={() => setServiceCategory(c.name)}
                         className={`p-3 rounded-2xl text-left border transition-all duration-200 relative overflow-hidden flex flex-col justify-between ${
                           isSelected
-                            ? 'bg-gradient-to-br from-brand-50 to-brand-100/70 dark:from-brand-950/80 dark:to-brand-900/60 border-brand-500 shadow-[0_8px_20px_rgba(91,61,245,0.25)] ring-2 ring-brand-400/40'
+                            ? 'bg-gradient-to-br from-amber-400/10 to-amber-500/10 border-amber-400 shadow-[0_8px_20px_rgba(251,191,36,0.25)] ring-2 ring-amber-400/40'
                             : 'bg-white dark:bg-dark-900 border-slate-200/80 dark:border-dark-800 hover:border-brand-300 dark:hover:border-brand-800 shadow-sm'
                         }`}
                       >

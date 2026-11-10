@@ -8,24 +8,35 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        heading: ['"Plus Jakarta Sans"', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
       },
       colors: {
-        brand: {
-          50:  '#f8f6ff',
-          100: '#E8DEFF', // Pale Sky (Official reference secondary)
-          200: '#d7c7fe',
-          300: '#be9ffd',
-          400: '#9d70fa',
-          500: '#7942f7',
-          600: '#5B3DF5', // Raspberry (Official reference primary accent)
-          700: '#4c2ce0',
-          800: '#3e22be',
-          900: '#341d9c',
-          950: '#1e0e64',
+        obsidian: {
+          950: '#06080d',
+          900: '#0b0f17',
+          850: '#111726',
+          800: '#172033',
         },
-        raspberry: '#5B3DF5',
-        palesky: '#E8DEFF',
+        brand: {
+          50:  '#fffbeb',
+          100: '#fef3c7',
+          200: '#fde68a',
+          300: '#fcd34d',
+          400: '#fbbf24', // Gold
+          500: '#f59e0b', // Amber primary
+          600: '#d97706',
+          700: '#b45309',
+          800: '#92400e',
+          900: '#78350f',
+          950: '#451a03',
+        },
+        gold: {
+          light: '#fef08a',
+          DEFAULT: '#fbbf24',
+          dark: '#d97706',
+        },
         dark: {
           50:  '#f8fafc',
           100: '#f1f5f9',
@@ -36,16 +47,17 @@ export default {
           600: '#475569',
           700: '#334155',
           800: '#1e293b',
-          850: '#172033',
-          900: '#0f172a',
-          950: '#090d16',
+          850: '#111726',
+          900: '#0b0f17',
+          950: '#06080d',
         }
       },
       boxShadow: {
-        'card': '0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05)',
-        'card-hover': '0 6px 16px -2px rgb(0 0 0 / 0.08), 0 2px 6px -2px rgb(0 0 0 / 0.04)',
-        'card-dark': '0 4px 20px -2px rgb(0 0 0 / 0.35)',
-        'glow-brand': '0 0 24px -2px rgba(91, 61, 245, 0.35)',
+        'card': '0 4px 20px -2px rgba(0, 0, 0, 0.45)',
+        'card-hover': '0 12px 30px -4px rgba(0, 0, 0, 0.6)',
+        'card-dark': '0 8px 30px -4px rgba(0, 0, 0, 0.7)',
+        'glow-amber': '0 0 25px -2px rgba(245, 158, 11, 0.35)',
+        'glow-gold': '0 0 35px -5px rgba(251, 191, 36, 0.4)',
       },
     },
   },

@@ -346,20 +346,20 @@ export default function DashboardPage() {
           {
             label: 'Sales Revenue (₹)',
             data: areaChartData.salesData,
-            borderColor: '#00f2fe',
+            borderColor: '#fbbf24',
             borderWidth: 2.5,
-            tension: 0.4,
+            tension: 0.35,
             fill: true,
             backgroundColor: (context: any) => {
               const ctx = context.chart?.ctx
-              if (!ctx) return 'rgba(0, 242, 254, 0.2)'
+              if (!ctx) return 'rgba(251, 191, 36, 0.2)'
               const gradient = ctx.createLinearGradient(0, 0, 0, 240)
-              gradient.addColorStop(0, 'rgba(0, 242, 254, 0.35)')
-              gradient.addColorStop(1, 'rgba(0, 242, 254, 0.0)')
+              gradient.addColorStop(0, 'rgba(251, 191, 36, 0.35)')
+              gradient.addColorStop(1, 'rgba(251, 191, 36, 0.0)')
               return gradient
             },
-            pointBackgroundColor: '#00f2fe',
-            pointBorderColor: '#0b171d',
+            pointBackgroundColor: '#fbbf24',
+            pointBorderColor: '#0b0f17',
             pointBorderWidth: 2,
             pointRadius: 3.5,
             pointHoverRadius: 6,
@@ -367,20 +367,20 @@ export default function DashboardPage() {
           {
             label: 'Cashback Issued (₹)',
             data: areaChartData.cbData,
-            borderColor: '#10b981',
+            borderColor: '#f59e0b',
             borderWidth: 2,
-            tension: 0.4,
+            tension: 0.35,
             fill: true,
             backgroundColor: (context: any) => {
               const ctx = context.chart?.ctx
-              if (!ctx) return 'rgba(16, 185, 129, 0.15)'
+              if (!ctx) return 'rgba(245, 158, 11, 0.15)'
               const gradient = ctx.createLinearGradient(0, 0, 0, 240)
-              gradient.addColorStop(0, 'rgba(16, 185, 129, 0.25)')
-              gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)')
+              gradient.addColorStop(0, 'rgba(245, 158, 11, 0.22)')
+              gradient.addColorStop(1, 'rgba(245, 158, 11, 0.0)')
               return gradient
             },
-            pointBackgroundColor: '#10b981',
-            pointBorderColor: '#0b171d',
+            pointBackgroundColor: '#f59e0b',
+            pointBorderColor: '#0b0f17',
             pointBorderWidth: 2,
             pointRadius: 3,
             pointHoverRadius: 5,
@@ -397,10 +397,10 @@ export default function DashboardPage() {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(13, 29, 36, 0.96)',
+            backgroundColor: 'rgba(11, 15, 23, 0.96)',
             titleColor: '#ffffff',
-            bodyColor: '#cbd5e1',
-            borderColor: 'rgba(0, 242, 254, 0.3)',
+            bodyColor: '#e2e8f0',
+            borderColor: 'rgba(251, 191, 36, 0.4)',
             borderWidth: 1,
             padding: 12,
             boxPadding: 6,
@@ -506,29 +506,29 @@ export default function DashboardPage() {
   }, [categoryStats, hasCategorySales])
 
   return (
-    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#0b171d] via-[#0d1d24] to-[#071116] text-white relative overflow-hidden font-sans space-y-7">
-      {/* ── Ambient Background Glows (Cyber-Teal Glassmorphic Aesthetic) ── */}
-      <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
-      <div className="pointer-events-none absolute top-1/3 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-[140px]" />
-      <div className="pointer-events-none absolute -bottom-32 left-1/3 w-[500px] h-[500px] bg-violet-600/5 rounded-full blur-[160px]" />
+    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#06080d] via-[#0b0f17] to-[#06080d] text-white relative overflow-hidden font-sans space-y-7">
+      {/* ── Ambient Background Glows (Dark Luxury Golden Aesthetic) ── */}
+      <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-amber-400/10 rounded-full blur-[120px] animate-pulse" />
+      <div className="pointer-events-none absolute top-1/3 -right-32 w-96 h-96 bg-amber-500/10 rounded-full blur-[140px]" />
+      <div className="pointer-events-none absolute -bottom-32 left-1/3 w-[500px] h-[500px] bg-amber-400/5 rounded-full blur-[160px]" />
 
       {/* ── 2. TOP BAR & GREETING HEADER ── */}
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/5">
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              {greeting}, <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">{shopName}</span>
+              {greeting}, <span className="bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 bg-clip-text text-transparent">{shopName}</span>
             </h1>
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-cyan-950/60 text-cyan-300 border border-cyan-500/30 shadow-sm shadow-cyan-500/20">
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-400/10 text-amber-300 border border-amber-400/30 shadow-sm shadow-amber-500/15">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400" />
               </span>
               #01 · Live POS
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1 flex items-center gap-2">
-            <Calendar size={14} className="text-cyan-400" />
+          <p className="text-xs sm:text-sm text-neutral-400 mt-1 flex items-center gap-2">
+            <Calendar size={14} className="text-amber-400" />
             {format(new Date(), 'EEEE, dd MMMM yyyy')} · Point of Sale & Cashback Engine Active
           </p>
         </div>
@@ -536,7 +536,7 @@ export default function DashboardPage() {
         {/* Quick action buttons & date range filter */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Date range filter pills */}
-          <div className="bg-slate-900/80 backdrop-blur-md p-1 rounded-xl border border-white/10 flex items-center gap-1 shadow-inner">
+          <div className="bg-black/50 backdrop-blur-md p-1 rounded-xl border border-white/10 flex items-center gap-1 shadow-inner">
             {(
               [
                 { id: 'today', label: 'Today' },
@@ -549,10 +549,10 @@ export default function DashboardPage() {
                 key={pill.id}
                 type="button"
                 onClick={() => setDateRange(pill.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
                   dateRange === pill.id
-                    ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-300 border border-cyan-400/40 shadow-sm shadow-cyan-500/20'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
+                    ? 'bg-amber-400 text-neutral-950 font-bold shadow-sm shadow-amber-500/30'
+                    : 'text-neutral-400 hover:text-white hover:bg-white/5 border border-transparent'
                 }`}
               >
                 {pill.label}
@@ -560,10 +560,10 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          {/* + New Bill Button with Cyan Glow Hover */}
+          {/* + New Bill Button with Golden Glow Hover */}
           <button
             onClick={() => navigate('/billing')}
-            className="group relative inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-950 bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-400/50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            className="group relative inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-neutral-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 shadow-lg shadow-amber-500/25 hover:shadow-amber-400/50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer"
           >
             <Sparkles size={15} className="group-hover:rotate-12 transition-transform duration-200" />
             <span>+ New Bill</span>
@@ -574,13 +574,13 @@ export default function DashboardPage() {
       {/* ── 3. TOP ROW: 4 MODERN KPI GLASS STAT CARDS (WITH ₹ SYMBOL) ── */}
       <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Today's Total Sales */}
-        <div className="group bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-cyan-400/40 rounded-2xl p-5 shadow-2xl hover:shadow-cyan-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl group-hover:bg-cyan-500/20 transition-all pointer-events-none" />
+        <div className="group bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-amber-400/40 rounded-2xl p-5 shadow-2xl hover:shadow-amber-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/10 rounded-full blur-2xl group-hover:bg-amber-400/20 transition-all pointer-events-none" />
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
               {dateRange === 'today' ? "Today's Gross Sales" : "Sales Revenue"}
             </span>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-teal-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center shadow-lg shadow-cyan-500/10">
+            <div className="w-10 h-10 rounded-xl bg-amber-400/15 text-amber-400 border border-amber-400/30 flex items-center justify-center shadow-lg shadow-amber-500/10">
               <ShoppingBag size={20} />
             </div>
           </div>
@@ -593,32 +593,32 @@ export default function DashboardPage() {
                 <TrendingUp size={12} />
                 +12.4%
               </span>
-              <span className="text-slate-400 text-[11px]">vs previous cycle</span>
+              <span className="text-neutral-400 text-[11px]">vs previous cycle</span>
             </div>
           </div>
         </div>
 
         {/* Card 2: Cashback Issued Today */}
-        <div className="group bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-emerald-400/40 rounded-2xl p-5 shadow-2xl hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all pointer-events-none" />
+        <div className="group bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-amber-400/40 rounded-2xl p-5 shadow-2xl hover:shadow-amber-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all pointer-events-none" />
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
               Cashback Issued
             </span>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center justify-center shadow-lg shadow-amber-500/10">
               <Gift size={20} />
             </div>
           </div>
           <div className="mt-3">
-            <p className="text-3xl font-black text-emerald-300 tracking-tight">
+            <p className="text-3xl font-black text-amber-300 tracking-tight">
               {formatCurrency(kpiStats.cashbackIssued)}
             </p>
             <div className="mt-2.5 flex items-center gap-2 text-xs">
-              <span className="inline-flex items-center gap-1 font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full text-[11px]">
+              <span className="inline-flex items-center gap-1 font-bold text-amber-400 bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded-full text-[11px]">
                 <Sparkles size={11} />
                 2% Reward
               </span>
-              <span className="text-slate-400 text-[11px]">added to wallets</span>
+              <span className="text-neutral-400 text-[11px]">added to wallets</span>
             </div>
           </div>
         </div>
@@ -627,47 +627,47 @@ export default function DashboardPage() {
         <div className="group bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-amber-400/40 rounded-2xl p-5 shadow-2xl hover:shadow-amber-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all pointer-events-none" />
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
               Cashback Redeemed
             </span>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shadow-lg shadow-amber-500/10">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shadow-lg shadow-amber-500/10">
               <Flame size={20} />
             </div>
           </div>
           <div className="mt-3">
-            <p className="text-3xl font-black text-amber-300 tracking-tight">
+            <p className="text-3xl font-black text-amber-400 tracking-tight">
               {formatCurrency(kpiStats.cashbackRedeemed)}
             </p>
             <div className="mt-2.5 flex items-center gap-2 text-xs">
               <span className="inline-flex items-center gap-1 font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full text-[11px]">
                 Savings Claimed
               </span>
-              <span className="text-slate-400 text-[11px]">applied on bills</span>
+              <span className="text-neutral-400 text-[11px]">applied on bills</span>
             </div>
           </div>
         </div>
 
         {/* Card 4: Customer Footfall & Growth */}
-        <div className="group bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-violet-400/40 rounded-2xl p-5 shadow-2xl hover:shadow-violet-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col justify-between">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-violet-500/10 rounded-full blur-2xl group-hover:bg-violet-500/20 transition-all pointer-events-none" />
+        <div className="group bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-amber-400/40 rounded-2xl p-5 shadow-2xl hover:shadow-amber-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/10 rounded-full blur-2xl group-hover:bg-amber-400/20 transition-all pointer-events-none" />
           <div>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
                 Customer Footfall
               </span>
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-cyan-500/20 text-violet-400 border border-violet-500/30 flex items-center justify-center shadow-lg shadow-violet-500/10">
+              <div className="w-10 h-10 rounded-xl bg-amber-400/15 text-amber-400 border border-amber-400/30 flex items-center justify-center shadow-lg shadow-amber-500/10">
                 <Users size={20} />
               </div>
             </div>
             <div className="mt-3">
               <p className="text-3xl font-black text-white tracking-tight">
-                {customerMetrics.activeFootfallToday} <span className="text-sm font-semibold text-slate-400">Active Today</span>
+                {customerMetrics.activeFootfallToday} <span className="text-sm font-semibold text-neutral-400">Active Today</span>
               </p>
             </div>
           </div>
 
           <div className="mt-3 pt-2.5 border-t border-white/5 flex flex-wrap items-center justify-between gap-1.5 text-xs">
-            <span className="inline-flex items-center gap-1 font-bold text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 px-2.5 py-0.5 rounded-full text-[11px]">
+            <span className="inline-flex items-center gap-1 font-bold text-amber-300 bg-amber-400/15 border border-amber-400/30 px-2.5 py-0.5 rounded-full text-[11px]">
               <Users size={11} />
               {customerMetrics.totalRegistered} Total Registered
             </span>
@@ -684,14 +684,14 @@ export default function DashboardPage() {
         {/* ── LEFT COLUMN (~70% Width): Financial Flow Chart & Live Recent Transactions ── */}
         <div className="lg:col-span-8 space-y-6">
           {/* Financial & Cashback Flow Area Chart */}
-          <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-6 relative overflow-hidden">
+          <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-amber-400/20 shadow-2xl rounded-2xl p-6 relative overflow-hidden transition-all duration-300">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-white/5">
               <div>
                 <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                  <Activity size={18} className="text-cyan-400" />
+                  <Activity size={18} className="text-amber-400" />
                   Financial & Cashback Flow
                 </h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-neutral-400 mt-0.5">
                   Real-time gross bill revenue vs. rewarded cashback distribution
                 </p>
               </div>
@@ -700,26 +700,26 @@ export default function DashboardPage() {
               <div className="flex items-center gap-3">
                 {/* Custom Legend */}
                 <div className="hidden md:flex items-center gap-3 text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-300">
-                    <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400/50" />
+                  <span className="flex items-center gap-1.5 text-neutral-300">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50" />
                     Revenue
                   </span>
-                  <span className="flex items-center gap-1.5 text-slate-300">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
+                  <span className="flex items-center gap-1.5 text-neutral-300">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50" />
                     Cashback
                   </span>
                 </div>
 
-                <div className="bg-slate-950/80 p-1 rounded-xl border border-white/10 flex items-center gap-1">
+                <div className="bg-black/50 p-1 rounded-xl border border-white/10 flex items-center gap-1">
                   {(['Day', 'Week', 'Month', 'Year'] as const).map(tab => (
                     <button
                       key={tab}
                       type="button"
                       onClick={() => setTimeframe(tab)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
                         timeframe === tab
-                          ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30'
-                          : 'text-slate-400 hover:text-white'
+                          ? 'bg-amber-400 text-neutral-950 font-bold shadow-md shadow-amber-500/30'
+                          : 'text-neutral-400 hover:text-white'
                       }`}
                     >
                       {tab}
@@ -739,24 +739,24 @@ export default function DashboardPage() {
           <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-6 relative overflow-hidden">
             <div className="flex items-center justify-between pb-4 border-b border-white/5">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-amber-400/15 text-amber-400 border border-amber-400/30 flex items-center justify-center">
                   <Clock size={16} />
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-white flex items-center gap-2">
                     Recent Bills & Live Transactions
                     <span className="flex h-2 w-2 relative">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400" />
                     </span>
                   </h3>
-                  <p className="text-xs text-slate-400">Instant synchronized ledger records</p>
+                  <p className="text-xs text-neutral-400">Instant synchronized ledger records</p>
                 </div>
               </div>
 
               <button
                 onClick={() => navigate('/reports')}
-                className="text-xs text-cyan-300 hover:text-cyan-200 flex items-center gap-1 font-semibold group transition-colors"
+                className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 font-semibold group transition-colors cursor-pointer"
               >
                 <span>View Full Ledger</span>
                 <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
@@ -766,7 +766,7 @@ export default function DashboardPage() {
             <div className="overflow-x-auto mt-2">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b border-white/5 text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+                  <tr className="border-b border-white/5 text-[11px] uppercase tracking-wider text-neutral-400 font-semibold">
                     <th className="py-3 px-3">Customer</th>
                     <th className="py-3 px-3">Service</th>
                     <th className="py-3 px-3">Bill</th>
@@ -785,19 +785,19 @@ export default function DashboardPage() {
                     return (
                       <tr
                         key={tx.id}
-                        className="hover:bg-cyan-500/[0.04] transition-colors rounded-xl group"
+                        className="hover:bg-amber-400/[0.04] transition-colors rounded-xl group"
                       >
                         {/* Customer Avatar & Name */}
                         <td className="py-3 px-3">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-teal-500 text-slate-950 font-bold text-xs flex items-center justify-center shadow-sm flex-shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-400 to-amber-500 text-neutral-950 font-bold text-xs flex items-center justify-center shadow-sm flex-shrink-0">
                               {initial}
                             </div>
                             <div className="min-w-0">
                               <p className="font-semibold text-white text-xs truncate max-w-[120px]">
                                 {tx.customer_name}
                               </p>
-                              <p className="text-[11px] text-slate-400 font-mono">
+                              <p className="text-[11px] text-neutral-400 font-mono">
                                 {tx.customer_mobile || '—'}
                               </p>
                             </div>
@@ -806,7 +806,7 @@ export default function DashboardPage() {
 
                         {/* Service Category */}
                         <td className="py-3 px-3">
-                          <span className="text-xs text-slate-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
+                          <span className="text-xs text-neutral-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
                             {tx.service_category}
                           </span>
                         </td>
@@ -819,7 +819,7 @@ export default function DashboardPage() {
                         {/* Payment Method Badge */}
                         <td className="py-3 px-3">
                           {isUPI ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-400/15 text-amber-300 border border-amber-400/30">
                               <QrCode size={11} />
                               UPI Pay
                             </span>
@@ -834,11 +834,11 @@ export default function DashboardPage() {
                         {/* Cashback Info */}
                         <td className="py-3 px-3 text-xs">
                           <div className="flex flex-col gap-0.5">
-                            <span className="text-cyan-400 font-bold">
+                            <span className="text-amber-400 font-bold">
                               +{formatCurrency(tx.cashback_earned)}
                             </span>
                             {tx.cashback_redeemed > 0 && (
-                              <span className="text-amber-400 text-[11px]">
+                              <span className="text-amber-300 text-[11px]">
                                 −{formatCurrency(tx.cashback_redeemed)}
                               </span>
                             )}
@@ -851,7 +851,7 @@ export default function DashboardPage() {
                         </td>
 
                         {/* Timestamp */}
-                        <td className="py-3 px-3 text-xs text-slate-400 font-mono whitespace-nowrap">
+                        <td className="py-3 px-3 text-xs text-neutral-400 font-mono whitespace-nowrap">
                           {format(new Date(tx.created_at), 'hh:mm a')}
                         </td>
 
@@ -868,11 +868,11 @@ export default function DashboardPage() {
 
                   {allTransactions.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="py-8 text-center text-slate-400 text-xs">
+                      <td colSpan={8} className="py-8 text-center text-neutral-400 text-xs">
                         No transactions recorded yet.{' '}
                         <button
                           onClick={() => navigate('/billing')}
-                          className="text-cyan-400 hover:underline font-semibold"
+                          className="text-amber-400 hover:underline font-semibold cursor-pointer"
                         >
                           Generate your first bill
                         </button>
@@ -888,19 +888,19 @@ export default function DashboardPage() {
         {/* ── RIGHT COLUMN (~30% Width): Service Category Intelligence (Clean 0 Baseline, No Mock Data) ── */}
         <div className="lg:col-span-4 space-y-6">
           {/* Service Category Donut / Radial Ring Chart */}
-          <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-cyan-400/30 shadow-2xl rounded-2xl p-6 relative overflow-hidden transition-all duration-300">
+          <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-amber-400/30 shadow-2xl rounded-2xl p-6 relative overflow-hidden transition-all duration-300">
             <div className="flex items-center justify-between pb-3 border-b border-white/5">
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <PieChart size={17} className="text-cyan-400" />
+                  <PieChart size={17} className="text-amber-400" />
                   Category Breakdown
                 </h3>
-                <p className="text-xs text-slate-400">Revenue split across shop services</p>
+                <p className="text-xs text-neutral-400">Revenue split across shop services</p>
               </div>
               <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
                 hasCategorySales
-                  ? 'text-cyan-400 bg-cyan-950/60 border-cyan-500/30'
-                  : 'text-slate-500 bg-slate-950/60 border-white/5'
+                  ? 'text-amber-400 bg-amber-400/10 border-amber-400/30'
+                  : 'text-neutral-500 bg-black/40 border-white/5'
               }`}>
                 {hasCategorySales ? 'Live Volume' : 'Clean Zero'}
               </span>
@@ -913,8 +913,8 @@ export default function DashboardPage() {
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 {hasCategorySales ? (
                   <>
-                    <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Top Service</span>
-                    <span className="text-sm font-extrabold text-cyan-300 truncate max-w-[120px] text-center">
+                    <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold">Top Service</span>
+                    <span className="text-sm font-extrabold text-amber-300 truncate max-w-[120px] text-center">
                       {categoryStats[0]?.name || 'None'}
                     </span>
                     <span className="text-xs text-emerald-400 font-bold">
@@ -923,9 +923,9 @@ export default function DashboardPage() {
                   </>
                 ) : (
                   <>
-                    <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Category Sales</span>
-                    <span className="text-sm font-black text-slate-400">₹0.00</span>
-                    <span className="text-[11px] text-slate-500 font-semibold">0%</span>
+                    <span className="text-[10px] uppercase tracking-wider text-neutral-500 font-bold">Category Sales</span>
+                    <span className="text-sm font-black text-neutral-400">₹0.00</span>
+                    <span className="text-[11px] text-neutral-500 font-semibold">0%</span>
                   </>
                 )}
               </div>
@@ -934,25 +934,25 @@ export default function DashboardPage() {
             {/* Category Activity Breakdown List */}
             <div className="mt-4 space-y-3 pt-3 border-t border-white/5">
               {!hasCategorySales && (
-                <div className="py-2.5 px-3 rounded-xl bg-slate-950/50 border border-white/5 text-center">
-                  <p className="text-xs text-slate-400 font-medium">No category sales recorded yet today</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Real-time split will populate as bills are saved</p>
+                <div className="py-2.5 px-3 rounded-xl bg-black/40 border border-white/5 text-center">
+                  <p className="text-xs text-neutral-400 font-medium">No category sales recorded yet today</p>
+                  <p className="text-[10px] text-neutral-500 mt-0.5">Real-time split will populate as bills are saved</p>
                 </div>
               )}
 
               {categoryStats.slice(0, 5).map(item => (
                 <div key={item.name} className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-200 truncate flex items-center gap-2 max-w-[170px]">
+                    <span className="font-semibold text-neutral-200 truncate flex items-center gap-2 max-w-[170px]">
                       <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
                       {item.name}
                     </span>
-                    <span className="text-slate-300 font-mono font-bold">
+                    <span className="text-neutral-300 font-mono font-bold">
                       {formatCurrency(item.sales)} ({item.percent}%)
                     </span>
                   </div>
                   {/* Glowing mini progress bar */}
-                  <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-white/5">
+                  <div className="w-full h-1.5 bg-black rounded-full overflow-hidden border border-white/5">
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
