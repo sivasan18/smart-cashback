@@ -50,7 +50,7 @@ export default function CustomerDetailPage() {
 
   if (loading) {
     return (
-      <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#0b171d] via-[#0d1d24] to-[#071116] text-white flex items-center justify-center">
+      <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#08090D] via-[#0D1117] to-[#08090D] text-white flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -58,7 +58,7 @@ export default function CustomerDetailPage() {
 
   if (!customer) {
     return (
-      <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#0b171d] via-[#0d1d24] to-[#071116] text-white text-center py-20">
+      <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#08090D] via-[#0D1117] to-[#08090D] text-white text-center py-20">
         <p className="text-slate-400">Customer not found.</p>
         <button onClick={() => navigate('/customers')} className="text-cyan-400 hover:underline font-semibold mt-2 inline-block">
           Return to Customers
@@ -75,7 +75,7 @@ export default function CustomerDetailPage() {
   ]
 
   return (
-    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#0b171d] via-[#0d1d24] to-[#071116] text-white relative overflow-hidden font-sans space-y-7">
+    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#08090D] via-[#0D1117] to-[#08090D] text-white relative overflow-hidden font-sans space-y-7">
       {/* ── Ambient Background Glows ── */}
       <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
       <div className="pointer-events-none absolute top-1/3 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-[140px]" />

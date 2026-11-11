@@ -200,12 +200,12 @@ export default function DashboardPage() {
   // Service Category Breakdown (STRICTLY REAL VALUES, ZERO HARDCODED MOCKS)
   const categoryStats: CategoryStat[] = useMemo(() => {
     const colorPalette = [
-      '#00f2fe', // Electric Cyan
-      '#10b981', // Emerald Green
-      '#8b5cf6', // Soft Violet
-      '#f59e0b', // Amber Flame
-      '#38bdf8', // Sky Blue
-      '#ec4899', // Hot Pink
+      '#FBBF24',
+      '#F59E0B',
+      '#D97706',
+      '#B45309',
+      '#94A3B8',
+      '#64748B',
     ]
 
     const targetSet = dateRange === 'today' ? todayTransactions : filteredRangeTransactions
@@ -346,20 +346,20 @@ export default function DashboardPage() {
           {
             label: 'Sales Revenue (₹)',
             data: areaChartData.salesData,
-            borderColor: '#00f2fe',
+            borderColor: '#FBBF24',
             borderWidth: 2.5,
             tension: 0.4,
             fill: true,
             backgroundColor: (context: any) => {
               const ctx = context.chart?.ctx
-              if (!ctx) return 'rgba(0, 242, 254, 0.2)'
+              if (!ctx) return 'rgba(245, 158, 11, 0.2)'
               const gradient = ctx.createLinearGradient(0, 0, 0, 240)
-              gradient.addColorStop(0, 'rgba(0, 242, 254, 0.35)')
-              gradient.addColorStop(1, 'rgba(0, 242, 254, 0.0)')
+              gradient.addColorStop(0, 'rgba(245, 158, 11, 0.35)')
+              gradient.addColorStop(1, 'rgba(245, 158, 11, 0.0)')
               return gradient
             },
-            pointBackgroundColor: '#00f2fe',
-            pointBorderColor: '#0b171d',
+            pointBackgroundColor: '#FBBF24',
+            pointBorderColor: '#08090D',
             pointBorderWidth: 2,
             pointRadius: 3.5,
             pointHoverRadius: 6,
@@ -367,20 +367,20 @@ export default function DashboardPage() {
           {
             label: 'Cashback Issued (₹)',
             data: areaChartData.cbData,
-            borderColor: '#10b981',
+            borderColor: '#94A3B8',
             borderWidth: 2,
             tension: 0.4,
             fill: true,
             backgroundColor: (context: any) => {
               const ctx = context.chart?.ctx
-              if (!ctx) return 'rgba(16, 185, 129, 0.15)'
+              if (!ctx) return 'rgba(148, 163, 184, 0.15)'
               const gradient = ctx.createLinearGradient(0, 0, 0, 240)
-              gradient.addColorStop(0, 'rgba(16, 185, 129, 0.25)')
-              gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)')
+              gradient.addColorStop(0, 'rgba(148, 163, 184, 0.25)')
+              gradient.addColorStop(1, 'rgba(148, 163, 184, 0.0)')
               return gradient
             },
-            pointBackgroundColor: '#10b981',
-            pointBorderColor: '#0b171d',
+            pointBackgroundColor: '#94A3B8',
+            pointBorderColor: '#08090D',
             pointBorderWidth: 2,
             pointRadius: 3,
             pointHoverRadius: 5,
@@ -397,10 +397,10 @@ export default function DashboardPage() {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(13, 29, 36, 0.96)',
-            titleColor: '#ffffff',
-            bodyColor: '#cbd5e1',
-            borderColor: 'rgba(0, 242, 254, 0.3)',
+            backgroundColor: 'rgba(8, 9, 13, 0.96)',
+            titleColor: '#E2E8F0',
+            bodyColor: '#94A3B8',
+            borderColor: 'rgba(245, 158, 11, 0.3)',
             borderWidth: 1,
             padding: 12,
             boxPadding: 6,
@@ -416,7 +416,7 @@ export default function DashboardPage() {
         scales: {
           x: {
             grid: {
-              color: 'rgba(255, 255, 255, 0.04)',
+              color: 'rgba(148, 163, 184, 0.08)',
             },
             ticks: {
               color: '#64748b',
@@ -425,7 +425,7 @@ export default function DashboardPage() {
           },
           y: {
             grid: {
-              color: 'rgba(255, 255, 255, 0.05)',
+              color: 'rgba(148, 163, 184, 0.1)',
             },
             ticks: {
               color: '#64748b',
@@ -447,8 +447,8 @@ export default function DashboardPage() {
           datasets: [
             {
               data: [1],
-              backgroundColor: ['rgba(255, 255, 255, 0.05)'],
-              borderColor: '#0b171d',
+              backgroundColor: ['rgba(148, 163, 184, 0.12)'],
+              borderColor: '#08090D',
               borderWidth: 2,
             },
           ],
@@ -474,7 +474,7 @@ export default function DashboardPage() {
           {
             data: activeList.map(c => c.sales),
             backgroundColor: activeList.map(c => c.color),
-            borderColor: '#0b171d',
+            borderColor: '#08090D',
             borderWidth: 3,
             hoverOffset: 6,
           },
@@ -487,10 +487,10 @@ export default function DashboardPage() {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(13, 29, 36, 0.96)',
-            titleColor: '#ffffff',
-            bodyColor: '#cbd5e1',
-            borderColor: 'rgba(0, 242, 254, 0.3)',
+            backgroundColor: 'rgba(8, 9, 13, 0.96)',
+            titleColor: '#E2E8F0',
+            bodyColor: '#94A3B8',
+            borderColor: 'rgba(245, 158, 11, 0.3)',
             borderWidth: 1,
             padding: 10,
             callbacks: {
@@ -506,7 +506,7 @@ export default function DashboardPage() {
   }, [categoryStats, hasCategorySales])
 
   return (
-    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#0b171d] via-[#0d1d24] to-[#071116] text-white relative overflow-hidden font-sans space-y-7">
+    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#08090D] via-[#0D1117] to-[#08090D] text-white relative overflow-hidden font-sans space-y-7">
       {/* ── Ambient Background Glows (Cyber-Teal Glassmorphic Aesthetic) ── */}
       <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
       <div className="pointer-events-none absolute top-1/3 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-[140px]" />

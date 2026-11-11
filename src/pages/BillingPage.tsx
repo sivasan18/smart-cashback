@@ -555,7 +555,7 @@ export default function BillingPage() {
           particleCount: 90,
           spread: 80,
           origin: { y: 0.6 },
-          colors: ['#5B3DF5', '#E8DEFF', '#10B981', '#F59E0B', '#FACC15', '#00f2fe'],
+          colors: ['#FBBF24', '#F59E0B', '#D97706', '#B45309', '#94A3B8', '#64748B'],
           ticks: 250,
           gravity: 0.9,
           scalar: 1.2,
@@ -632,7 +632,7 @@ export default function BillingPage() {
   const stepDisplay = ['Search', 'Register', 'Billing', 'Payment', 'Saved']
 
   return (
-    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#0b171d] via-[#0d1d24] to-[#071116] text-white relative overflow-hidden font-sans space-y-7">
+    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#08090D] via-[#0D1117] to-[#08090D] text-white relative overflow-hidden font-sans space-y-7">
       {/* ── Ambient Background Glows (Cyber-Teal Glassmorphic V2) ── */}
       <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
       <div className="pointer-events-none absolute top-1/3 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-[140px]" />
@@ -674,7 +674,7 @@ export default function BillingPage() {
                     transition={isActive ? { repeat: Infinity, duration: 2.2, ease: 'easeInOut' } : { duration: 0.2 }}
                     className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all ${
                       isActive
-                        ? 'bg-gradient-to-tr from-cyan-400 via-teal-300 to-emerald-400 text-slate-950 shadow-[0_4px_16px_rgba(0,242,254,0.45)] ring-2 ring-cyan-400 border border-white/40 font-black'
+                        ? 'bg-gradient-to-tr from-cyan-400 via-teal-300 to-emerald-400 text-slate-950 shadow-[0_4px_16px_rgba(245,158,11,0.35)] ring-2 ring-cyan-400 border border-white/40 font-black'
                         : isCompleted
                         ? 'bg-emerald-500 text-white shadow-sm font-bold'
                         : 'bg-slate-950/70 text-slate-500 border border-white/5'
@@ -966,7 +966,7 @@ export default function BillingPage() {
                         onClick={() => setServiceCategory(c.name)}
                         className={`p-3 rounded-2xl text-left border transition-all duration-200 relative overflow-hidden flex flex-col justify-between ${
                           isSelected
-                            ? 'bg-gradient-to-br from-brand-50 to-brand-100/70 dark:from-brand-950/80 dark:to-brand-900/60 border-brand-500 shadow-[0_8px_20px_rgba(91,61,245,0.25)] ring-2 ring-brand-400/40'
+                            ? 'bg-gradient-to-br from-brand-50 to-brand-100/70 dark:from-brand-950/80 dark:to-brand-900/60 border-brand-500 shadow-[0_8px_20px_rgba(245,158,11,0.25)] ring-2 ring-brand-400/40'
                             : 'bg-white dark:bg-dark-900 border-slate-200/80 dark:border-dark-800 hover:border-brand-300 dark:hover:border-brand-800 shadow-sm'
                         }`}
                       >

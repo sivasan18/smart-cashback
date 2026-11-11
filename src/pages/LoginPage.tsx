@@ -1,18 +1,30 @@
-import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Zap, Lock, Mail } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
   const { session, signIn, loading } = useAuthStore()
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPwd, setShowPwd] = useState(false)
+  const [lampOn, setLampOn] = useState(false)
+  const [isLeaving, setIsLeaving] = useState(false)
+  const emailInputRef = useRef<HTMLInputElement>(null)
+  const successfulLoginRef = useRef(false)
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
 
-  // Default redirect after login is strictly New Bill (/billing)
-  if (session) return <Navigate to="/billing" replace />
+  useEffect(() => {
+    if (lampOn) emailInputRef.current?.focus()
+  }, [lampOn])
+
+  useEffect(() => {
+    if (session && !isLeaving && !successfulLoginRef.current) {
+      navigate('/billing', { replace: true })
+    }
+  }, [session, isLeaving, navigate])
 
   const validate = () => {
     const e: typeof errors = {}
@@ -25,31 +37,47 @@ export default function LoginPage() {
 
   const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault()
-    if (!validate()) return
+    if (!lampOn || !validate()) return
     const { error } = await signIn(email.trim(), password)
     if (error) {
       toast.error(error)
       setErrors({ password: 'Invalid credentials. Please try again.' })
     } else {
-      toast.success('Welcome back!')
+      successfulLoginRef.current = true
+      setIsLeaving(true)
+      window.setTimeout(() => {
+        navigate('/billing', { replace: true, state: { loginSuccess: true } })
+      }, 180)
     }
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-dark-950 flex items-center justify-center p-4 transition-colors duration-200">
-      <div className="w-full max-w-md">
-        {/* Card */}
-        <div className="bg-white dark:bg-dark-900 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-dark-950 border border-slate-200/80 dark:border-dark-800 p-8 animate-fade-in transition-colors duration-200">
-          {/* Header */}
+    <div className={`login-scene min-h-screen flex items-center justify-center p-4 transition-colors duration-200 ${lampOn ? 'is-lit' : ''}`}>
+      <div className="relative z-10 w-full max-w-md">
+        <div className="login-lamp" aria-label={`Sign-in lamp ${lampOn ? 'on' : 'off'}`}>
+          <div className="login-lamp__shade" />
+          <span className="login-lamp__cord" />
+          <button
+            type="button"
+            className="login-lamp__pull"
+            aria-label={lampOn ? 'Turn off sign-in lamp' : 'Pull cord to illuminate sign-in'}
+            title={lampOn ? 'Turn lamp off' : 'Pull to turn lamp on'}
+            onClick={() => setLampOn(value => !value)}
+          />
+        </div>
+
+        <div className={`login-card rounded-3xl p-8 transition-colors duration-200 ${isLeaving ? 'is-exiting' : ''}`}>
           <div className="text-center mb-8">
-            <div className="inline-flex w-16 h-16 rounded-2xl bg-brand-600 items-center justify-center shadow-lg shadow-brand-600/30 mb-4">
-              <Zap size={28} className="text-white" />
+            <div className="inline-flex w-16 h-16 rounded-2xl bg-brand-500 items-center justify-center shadow-lg shadow-brand-500/30 mb-4">
+              <Zap size={28} className="text-[#08090D]" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Smart Cashback</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Administrator Sign In</p>
+            <h1 className="text-2xl font-bold text-slate-100 tracking-tight">Smart Cashback</h1>
+            <p className="text-xs text-slate-400 mt-1">Administrator Sign In</p>
+            <p className="text-[11px] text-slate-500 mt-3">
+              {lampOn ? 'Sign-in is illuminated' : 'Pull the cord to illuminate sign-in'}
+            </p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
             <div>
               <label htmlFor="login-email" className="form-label">
@@ -58,15 +86,16 @@ export default function LoginPage() {
               <div className="relative">
                 <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
+                  ref={emailInputRef}
                   id="login-email"
                   type="email"
                   autoComplete="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className={`form-input pl-10 ${errors.email ? 'border-rose-400 dark:border-rose-500' : ''}`}
+                  className={`form-input pl-10 disabled:opacity-45 ${errors.email ? 'border-amber-500' : ''}`}
                   placeholder="admin@yourshop.com"
-                  disabled={loading}
-                  autoFocus
+                  disabled={!lampOn || loading}
+                  tabIndex={lampOn ? 0 : -1}
                 />
               </div>
               {errors.email && <p className="form-error">{errors.email}</p>}
@@ -84,15 +113,17 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className={`form-input pl-10 pr-10 ${errors.password ? 'border-rose-400 dark:border-rose-500' : ''}`}
+                  className={`form-input pl-10 pr-10 disabled:opacity-45 ${errors.password ? 'border-amber-500' : ''}`}
                   placeholder="••••••••"
-                  disabled={loading}
+                  disabled={!lampOn || loading}
+                  tabIndex={lampOn ? 0 : -1}
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPwd(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-                  tabIndex={-1}
+                  onClick={() => setShowPwd(value => !value)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-400 transition-colors disabled:opacity-40"
+                  tabIndex={lampOn ? 0 : -1}
+                  disabled={!lampOn || loading}
                   aria-label={showPwd ? 'Hide password' : 'Show password'}
                 >
                   {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -104,25 +135,25 @@ export default function LoginPage() {
             <button
               type="submit"
               className="btn-primary w-full py-3 text-base mt-2"
-              disabled={loading}
+              disabled={!lampOn || loading || isLeaving}
             >
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-[#08090D]/40 border-t-[#08090D] rounded-full animate-spin" />
                   Signing in…
                 </span>
               ) : 'Sign In'}
             </button>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-slate-100 dark:border-dark-800 text-center">
-            <p className="text-xs text-slate-400 dark:text-slate-500">
+          <div className="mt-6 pt-5 border-t border-[#1E2638] text-center">
+            <p className="text-xs text-slate-400">
               Protected administrator access only
             </p>
           </div>
         </div>
 
-        <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-6">
+        <p className="text-center text-xs text-slate-500 mt-6">
           Smart Cashback © {new Date().getFullYear()}
         </p>
       </div>

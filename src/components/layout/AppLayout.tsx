@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   Receipt, Users, Wallet, Search, BarChart3,
   LayoutDashboard, Settings, LogOut, Menu, X,
-  Zap, Sun, Moon, Laptop, Monitor
+  Zap, Sun, Moon, Laptop, Monitor, Check
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useSettingsStore } from '@/store/settingsStore'
@@ -35,6 +35,16 @@ export default function AppLayout() {
   const { theme, setTheme, resolvedTheme } = useThemeStore()
   const navigate = useNavigate()
   const location = useLocation()
+  const [loginToastVisible, setLoginToastVisible] = useState(
+    () => Boolean((location.state as { loginSuccess?: boolean } | null)?.loginSuccess)
+  )
+
+  useEffect(() => {
+    if (!loginToastVisible) return
+    const timeout = window.setTimeout(() => setLoginToastVisible(false), 3000)
+    navigate(location.pathname, { replace: true, state: null })
+    return () => window.clearTimeout(timeout)
+  }, [loginToastVisible, location.pathname, navigate])
 
   const handleSignOut = async () => {
     await signOut()
@@ -214,7 +224,7 @@ export default function AppLayout() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2.5 ml-auto">
+          <div className="relative flex items-center gap-2.5 ml-auto">
             <NavLink
               to="/billing"
               className="btn-primary text-xs px-3.5 py-2 flex items-center gap-1.5"
@@ -222,6 +232,16 @@ export default function AppLayout() {
               <Receipt size={14} />
               <span>New Bill</span>
             </NavLink>
+            {loginToastVisible && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="login-toast absolute right-0 top-full z-50 mt-2 flex items-center gap-2 whitespace-nowrap rounded-full border border-amber-500/50 bg-[#08090D]/95 px-3.5 py-2 text-xs font-medium text-slate-200 shadow-xl shadow-black/40 backdrop-blur-md"
+              >
+                <Check size={14} className="text-amber-400" aria-hidden="true" />
+                Logged in successfully
+              </div>
+            )}
           </div>
         </header>
 

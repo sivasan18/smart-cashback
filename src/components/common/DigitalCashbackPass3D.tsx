@@ -82,13 +82,13 @@ export default function DigitalCashbackPass3D({
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
           }}
-          className="absolute inset-0 w-full h-full rounded-3xl p-6 sm:p-7 overflow-hidden flex flex-col justify-between border border-white/20 dark:border-white/10 shadow-[0_20px_50px_rgba(91,61,245,0.35)] bg-gradient-to-br from-[#5B3DF5] via-[#4A2FE0] to-[#241280] text-white"
+          className="absolute inset-0 w-full h-full rounded-3xl p-6 sm:p-7 overflow-hidden flex flex-col justify-between border border-amber-500/30 shadow-[0_20px_50px_rgba(245,158,11,0.2)] bg-gradient-to-br from-[#1E2638] via-[#0D1117] to-[#08090D] text-slate-100"
         >
           {/* Dynamic Glare / Holographic sheen overlay */}
           <div
             className="pointer-events-none absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-300"
             style={{
-              background: `radial-gradient(circle at ${glarePosition.x}% ${glarePosition.y}%, rgba(255, 255, 255, 0.45) 0%, rgba(232, 222, 255, 0.15) 35%, transparent 70%)`,
+              background: `radial-gradient(circle at ${glarePosition.x}% ${glarePosition.y}%, rgba(251, 191, 36, 0.26) 0%, rgba(245, 158, 11, 0.1) 35%, transparent 70%)`,
             }}
           />
 
@@ -196,7 +196,7 @@ export default function DigitalCashbackPass3D({
             WebkitBackfaceVisibility: 'hidden',
             transform: 'rotateY(180deg)',
           }}
-          className="absolute inset-0 w-full h-full rounded-3xl p-6 overflow-hidden flex flex-col justify-between border border-white/20 shadow-2xl bg-gradient-to-br from-[#241280] via-[#3217A6] to-[#120743] text-white"
+          className="absolute inset-0 w-full h-full rounded-3xl p-6 overflow-hidden flex flex-col justify-between border border-amber-500/30 shadow-2xl bg-gradient-to-br from-[#1E2638] via-[#0D1117] to-[#08090D] text-slate-100"
         >
           {/* Black Magnetic Stripe */}
           <div className="absolute top-6 left-0 w-full h-11 bg-slate-950/90 shadow-inner flex items-center px-6">
@@ -236,4 +236,3 @@ export default function DigitalCashbackPass3D({
     </div>
   )
 }
-

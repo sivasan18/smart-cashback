@@ -125,7 +125,7 @@ export default function WalletLookupPage() {
   })
 
   return (
-    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#0b171d] via-[#0d1d24] to-[#071116] text-white relative overflow-hidden font-sans space-y-7">
+    <div className="-m-4 lg:-m-6 p-4 lg:p-8 min-h-full bg-gradient-to-b from-[#08090D] via-[#0D1117] to-[#08090D] text-white relative overflow-hidden font-sans space-y-7">
       {/* ── Ambient Background Glows (Cyber-Teal Glassmorphic V2) ── */}
       <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
       <div className="pointer-events-none absolute top-1/3 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-[140px]" />
@@ -270,7 +270,7 @@ export default function WalletLookupPage() {
                       </td>
                       <td className="px-5 py-4 font-mono text-cyan-300">{c.mobile}</td>
                       <td className="px-5 py-4">
-                        <span className={`font-black text-sm ${c.cashback_balance > 0 ? 'text-cyan-300 drop-shadow-[0_2px_8px_rgba(0,242,254,0.3)]' : 'text-slate-500'}`}>
+                        <span className={`font-black text-sm ${c.cashback_balance > 0 ? 'text-cyan-300 drop-shadow-[0_2px_8px_rgba(245,158,11,0.3)]' : 'text-slate-500'}`}>
                           {formatCurrency(c.cashback_balance)}
                         </span>
                       </td>
