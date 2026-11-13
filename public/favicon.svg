@@ -1,5 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" rx="8" fill="#16a34a"/>
-  <path d="M16 6L20 14H12L16 6Z" fill="white" opacity="0.9"/>
-  <path d="M10 16L16 26L22 16H10Z" fill="white" opacity="0.7"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="gold" x1="20" y1="30" x2="105" y2="100" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FBBF24"/>
+      <stop offset=".58" stop-color="#F59E0B"/>
+      <stop offset="1" stop-color="#D97706"/>
+    </linearGradient>
+    <filter id="glow" x="5" y="5" width="118" height="118" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <rect x="1.5" y="1.5" width="125" height="125" rx="28" fill="#08090D" stroke="#1E2638" stroke-width="3"/>
+
+  <g filter="url(#glow)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M88 25a46 46 0 1 0 15 24" stroke="url(#gold)" stroke-width="4.5"/>
+    <path d="M22 64a25 25 0 0 1 50 0v3H22v-3Z" fill="url(#gold)" stroke="#08090D" stroke-width="3"/>
+    <path d="M29 56c4-7 11-11 19-11" stroke="#FEFCE8" stroke-width="3"/>
+    <path d="M39 49h.1m8-3h.1m9 2h.1" stroke="#FEFCE8" stroke-width="2.5"/>
+    <circle cx="60" cy="55" r="6" fill="#B96709" stroke="#FBBF24" stroke-width="1.5"/>
+    <path d="M62 52.5c-.5-.7-1.2-1-2-1-1.2 0-2 .6-2 1.5 0 2.2 4 1 4 3.2 0 1-.8 1.6-2 1.6-.9 0-1.7-.4-2.2-1M60 50.5v8" stroke="#FEF3C7" stroke-width="1"/>
+
+    <path d="M23 68h49v6H23z" fill="#FBBF24" stroke="#08090D" stroke-width="2.5"/>
+    <path d="M25 73h46a7 7 0 0 1 0 14H25a7 7 0 0 1 0-14Z" fill="#08090D" stroke="url(#gold)" stroke-width="3.5"/>
+    <path d="M23 91h51a18 18 0 0 1-18 17H41a18 18 0 0 1-18-17Z" fill="url(#gold)" stroke="#08090D" stroke-width="3"/>
+    <path d="M30 96c2 5 6 8 12 8h14c6 0 10-3 12-8" stroke="#FBBF24" stroke-width="2.5"/>
+
+    <path d="m88 48 4-20 13-4" stroke="#08090D" stroke-width="10"/>
+    <path d="m88 48 4-20 13-4" stroke="#FBBF24" stroke-width="6.5"/>
+    <path d="m90 42 3-12 9-3" stroke="#FEFCE8" stroke-width="2"/>
+    <path d="M79 52h26l-4 44a6 6 0 0 1-6 5H89a6 6 0 0 1-6-5l-4-44Z" fill="url(#gold)" stroke="#08090D" stroke-width="3"/>
+    <path d="m87 62 3 31" stroke="#FEFCE8" stroke-width="2.7"/>
+    <path d="M77 48h30l2 6a4 4 0 0 1-4 5H79a4 4 0 0 1-4-5l2-6Z" fill="#FBBF24" stroke="#08090D" stroke-width="3"/>
+    <path d="M81 52h22" stroke="#FEFCE8" stroke-width="2"/>
+
+    <circle cx="74" cy="78" r="8.5" fill="#FBBF24" stroke="#08090D" stroke-width="2.5"/>
+    <text x="74" y="81" fill="#713F12" font-family="Arial,sans-serif" font-size="9" font-weight="700" text-anchor="middle">%</text>
+    <path d="m68 66 1.5 3.5L73 71l-3.5 1.5L68 76l-1.5-3.5L63 71l3.5-1.5L68 66Z" fill="#FEFCE8"/>
+  </g>
 </svg>

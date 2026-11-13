@@ -125,6 +125,46 @@ export interface ReportRow {
   status: string
 }
 
+// ─── Automated Reporting & Email Types ───────────────────────────────────────
+
+export interface ReportSettings {
+  id: string
+  recipient_email: string
+  is_email_verified: boolean
+  verification_code?: string | null
+  verification_sent_at?: string | null
+  weekly_enabled: boolean
+  weekly_day_of_week: number // 0 = Sunday
+  weekly_time: string // HH:mm (24-hour)
+  monthly_enabled: boolean
+  monthly_day_of_month: number
+  monthly_time: string // HH:mm (24-hour)
+  timezone: string
+  last_report_at?: string | null
+  last_report_status?: 'success' | 'failed' | null
+  last_report_error?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ReportHistory {
+  id: string
+  report_type: 'weekly' | 'monthly' | 'manual' | 'custom' | 'test'
+  period_label: string
+  period_start?: string | null
+  period_end?: string | null
+  recipient_email: string
+  status: 'success' | 'failed' | 'processing'
+  resend_message_id?: string | null
+  total_customers: number
+  total_transactions: number
+  total_sales_amount: number
+  initiated_by: string
+  error_message?: string | null
+  file_name?: string | null
+  created_at: string
+}
+
 // ─── Notification stub (future SMS) ──────────────────────────────────────────
 
 export type NotificationEvent =

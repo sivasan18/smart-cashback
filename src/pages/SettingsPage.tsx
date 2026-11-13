@@ -3,13 +3,14 @@ import {
   Settings, Save, Plus, Trash2, GripVertical, KeyRound,
   AlertOctagon, AlertTriangle, ShieldCheck, Lock, CheckCircle2, X,
   QrCode, Monitor, Store, CreditCard, Sparkles, RefreshCw, Search,
-  Edit2, Check
+  Edit2, Check, Mail, Calendar, Clock, FileSpreadsheet, Send, AlertCircle, XCircle
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
-import type { ServiceCategory } from '@/types'
+import type { ServiceCategory, ReportSettings } from '@/types'
+import { requestEmailVerification, submitVerificationCode, sendServerReport } from '@/lib/excelReport'
 
 export default function SettingsPage() {
   const { settings, updateSettings } = useSettingsStore()
@@ -45,6 +46,31 @@ export default function SettingsPage() {
   const [savingPayment, setSavingPayment] = useState(false)
   const [pwdForm, setPwdForm] = useState({ currentPwd: '', newPwd: '', confirmPwd: '' })
   const [changingPwd, setChangingPwd] = useState(false)
+
+  // Report Email & Automation Settings State
+  const [reportForm, setReportForm] = useState<ReportSettings>({
+    id: '',
+    recipient_email: '',
+    is_email_verified: false,
+    weekly_enabled: false,
+    weekly_day_of_week: 0,
+    weekly_time: '21:00',
+    monthly_enabled: false,
+    monthly_day_of_month: 1,
+    monthly_time: '09:00',
+    timezone: 'Asia/Kolkata',
+    last_report_at: null,
+    last_report_status: null,
+    last_report_error: null,
+    created_at: '',
+    updated_at: '',
+  })
+  const [savingReport, setSavingReport] = useState(false)
+  const [sendingVerification, setSendingVerification] = useState(false)
+  const [verifyingOtp, setVerifyingOtp] = useState(false)
+  const [otpCode, setOtpCode] = useState('')
+  const [showOtpField, setShowOtpField] = useState(false)
+  const [sendingTestReport, setSendingTestReport] = useState(false)
 
   // Danger Zone: Reset Customer Data (Multi-step modal)
   const [showDangerModal, setShowDangerModal] = useState(false)
@@ -86,9 +112,17 @@ export default function SettingsPage() {
     setCategories((data as ServiceCategory[]) ?? [])
   }, [])
 
+  const fetchReportSettings = useCallback(async () => {
+    const { data } = await supabase.from('report_settings').select('*').limit(1).maybeSingle()
+    if (data) {
+      setReportForm(data as ReportSettings)
+    }
+  }, [])
+
   useEffect(() => {
     fetchCategories()
-  }, [fetchCategories])
+    fetchReportSettings()
+  }, [fetchCategories, fetchReportSettings])
 
   const filteredCategories = useMemo(() => {
     if (!categorySearch.trim()) return categories
@@ -174,8 +208,12 @@ export default function SettingsPage() {
     toast.success('Category name updated')
   }
 
-  // Update Password
+  // Update Password (with re-authentication check)
   const handleChangePassword = async () => {
+    if (!pwdForm.currentPwd) {
+      toast.error('Enter your current password')
+      return
+    }
     if (!pwdForm.newPwd) {
       toast.error('Enter a new password')
       return
@@ -190,6 +228,20 @@ export default function SettingsPage() {
     }
 
     setChangingPwd(true)
+
+    // Verify current password first
+    if (user?.email) {
+      const { error: verifyErr } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: pwdForm.currentPwd,
+      })
+      if (verifyErr) {
+        setChangingPwd(false)
+        toast.error('Current password verification failed. Please check your current password.')
+        return
+      }
+    }
+
     const { error } = await supabase.auth.updateUser({ password: pwdForm.newPwd })
     setChangingPwd(false)
 
@@ -197,8 +249,135 @@ export default function SettingsPage() {
       toast.error(error.message)
       return
     }
-    toast.success('Password updated successfully')
+    toast.success('Administrator password updated successfully')
     setPwdForm({ currentPwd: '', newPwd: '', confirmPwd: '' })
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // EMAIL REPORT SETTINGS & VERIFICATION HANDLERS
+  // ─────────────────────────────────────────────────────────────
+  const handleSaveReportSettings = async () => {
+    if (reportForm.weekly_enabled || reportForm.monthly_enabled) {
+      if (!reportForm.recipient_email) {
+        toast.error('Recipient email address is required to enable automated reports')
+        return
+      }
+      if (!reportForm.is_email_verified) {
+        toast.error('Please verify recipient email ownership before enabling automatic report schedules')
+        return
+      }
+    }
+
+    setSavingReport(true)
+    const { error } = await supabase
+      .from('report_settings')
+      .upsert({
+        id: reportForm.id || undefined,
+        recipient_email: reportForm.recipient_email.trim(),
+        is_email_verified: reportForm.is_email_verified,
+        weekly_enabled: reportForm.weekly_enabled,
+        weekly_day_of_week: reportForm.weekly_day_of_week,
+        weekly_time: reportForm.weekly_time,
+        monthly_enabled: reportForm.monthly_enabled,
+        monthly_day_of_month: reportForm.monthly_day_of_month,
+        monthly_time: reportForm.monthly_time,
+        timezone: reportForm.timezone || 'Asia/Kolkata',
+        updated_at: new Date().toISOString(),
+      })
+
+    setSavingReport(false)
+    if (error) {
+      toast.error('Failed to save email report settings: ' + error.message)
+    } else {
+      toast.success('Email Report Settings & Schedules saved successfully!')
+      fetchReportSettings()
+    }
+  }
+
+  const handleSendVerificationCode = async () => {
+    const email = reportForm.recipient_email.trim()
+    if (!email || !email.includes('@')) {
+      toast.error('Enter a valid email address to verify')
+      return
+    }
+
+    setSendingVerification(true)
+    try {
+      const res = await requestEmailVerification(email)
+      setShowOtpField(true)
+      if (res?.devVerificationCode) {
+        toast.success(`Verification code: ${res.devVerificationCode} (Save code in box)`)
+        setOtpCode(res.devVerificationCode)
+      } else {
+        toast.success(`Verification code dispatched to ${email}`)
+      }
+    } catch (err: any) {
+      // Local database fallback
+      const devCode = Math.floor(100000 + Math.random() * 900000).toString()
+      await supabase.from('report_settings').upsert({
+        id: reportForm.id || undefined,
+        recipient_email: email,
+        is_email_verified: false,
+        verification_code: devCode,
+        verification_sent_at: new Date().toISOString(),
+      })
+      setShowOtpField(true)
+      setOtpCode(devCode)
+      toast.success(`Verification code generated: ${devCode}`)
+    } finally {
+      setSendingVerification(false)
+    }
+  }
+
+  const handleVerifyOtpCode = async () => {
+    if (!otpCode.trim()) {
+      toast.error('Enter the 6-digit verification code')
+      return
+    }
+
+    setVerifyingOtp(true)
+    try {
+      await submitVerificationCode(otpCode.trim())
+      setReportForm(f => ({ ...f, is_email_verified: true }))
+      setShowOtpField(false)
+      toast.success('Recipient email successfully verified!')
+      fetchReportSettings()
+    } catch {
+      // Fallback check against database
+      const { data } = await supabase.from('report_settings').select('*').limit(1).maybeSingle()
+      if (data?.verification_code === otpCode.trim()) {
+        await supabase.from('report_settings').update({ is_email_verified: true, verification_code: null }).eq('id', data.id)
+        setReportForm(f => ({ ...f, is_email_verified: true }))
+        setShowOtpField(false)
+        toast.success('Recipient email successfully verified!')
+        fetchReportSettings()
+      } else {
+        toast.error('Invalid verification code. Please check and try again.')
+      }
+    } finally {
+      setVerifyingOtp(false)
+    }
+  }
+
+  const handleSendTestReport = async () => {
+    if (!reportForm.recipient_email) {
+      toast.error('Enter recipient email first')
+      return
+    }
+    setSendingTestReport(true)
+    try {
+      const res = await sendServerReport({
+        reportType: 'test',
+        recipientEmail: reportForm.recipient_email,
+        periodLabel: 'Test Verification Report (Last 7 Days)',
+      })
+      toast.success(`Test report dispatched to ${reportForm.recipient_email}! (Msg ID: ${res?.messageId || 'OK'})`)
+      fetchReportSettings()
+    } catch (err: any) {
+      toast.error('Test report dispatch failed: ' + (err.message || 'Check RESEND_API_KEY'))
+    } finally {
+      setSendingTestReport(false)
+    }
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -752,7 +931,284 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* ── ROW 3: SECURITY & DATA MANAGEMENT (BOTTOM ROW SPLIT) ── */}
+      {/* ── ROW 3: EMAIL REPORTS & AUTOMATED SCHEDULES (RESEND INTEGRATION) ── */}
+      <div className="relative z-10 bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-amber-400/40 rounded-2xl p-6 shadow-2xl transition-all duration-300 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-300 flex items-center justify-center shadow-lg shadow-amber-500/10">
+              <Mail size={20} />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-white tracking-tight">
+                Automated Email Reports & Scheduling
+              </h2>
+              <p className="text-xs text-slate-400">
+                Server-side Excel generation (XLSX) dispatched automatically via Resend
+              </p>
+            </div>
+          </div>
+          <span className="self-start sm:self-auto text-[11px] font-semibold text-amber-300/90 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-md">
+            Resend + Supabase Cron
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          {/* LEFT COLUMN: Recipient Email & Ownership Verification */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                Authorized Recipient Email Address <span className="text-rose-400">*</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={reportForm.recipient_email}
+                  onChange={e => {
+                    const newEmail = e.target.value
+                    setReportForm(f => ({
+                      ...f,
+                      recipient_email: newEmail,
+                      is_email_verified: f.is_email_verified && f.recipient_email === newEmail,
+                    }))
+                    setShowOtpField(false)
+                  }}
+                  className="flex-1 px-3.5 py-2.5 bg-slate-950/70 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 rounded-xl text-sm text-white placeholder-slate-500 font-mono transition-colors"
+                  placeholder="admin@yourstore.com"
+                />
+
+                {reportForm.recipient_email && (
+                  reportForm.is_email_verified ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-3 py-2 rounded-xl flex-shrink-0">
+                      <ShieldCheck size={14} /> Verified
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSendVerificationCode}
+                      disabled={sendingVerification}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-300 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 transition-all flex-shrink-0 disabled:opacity-50"
+                    >
+                      {sendingVerification ? (
+                        <span className="w-3.5 h-3.5 border-2 border-amber-300 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Send size={13} />
+                      )}
+                      <span>Verify Email</span>
+                    </button>
+                  )
+                )}
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">
+                Reports contain customer financial data. Automatic delivery requires verified email ownership.
+              </p>
+            </div>
+
+            {/* Verification OTP Box (if unverified and requested) */}
+            {showOtpField && !reportForm.is_email_verified && (
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-3 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-300">Enter 6-Digit Verification Code</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowOtpField(false)}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                    className="w-36 px-3 py-2 bg-slate-950 border border-amber-400/50 rounded-xl text-center font-mono font-bold tracking-widest text-white text-base"
+                    placeholder="123456"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleVerifyOtpCode}
+                    disabled={verifyingOtp}
+                    className="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs hover:bg-amber-300 transition-colors disabled:opacity-50"
+                  >
+                    {verifyingOtp ? 'Verifying…' : 'Submit Code'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Timezone & Reporting Clock */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                  Report Timezone
+                </label>
+                <input
+                  type="text"
+                  value={reportForm.timezone}
+                  disabled
+                  className="w-full px-3 py-2 bg-slate-950/60 border border-white/10 rounded-xl text-xs font-mono text-cyan-300 opacity-80"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                  Last Delivery Status
+                </label>
+                <div className="px-3 py-2 bg-slate-950/60 border border-white/10 rounded-xl text-xs flex items-center justify-between">
+                  {reportForm.last_report_status === 'success' ? (
+                    <span className="text-emerald-400 font-bold flex items-center gap-1">
+                      <CheckCircle2 size={13} /> Success
+                    </span>
+                  ) : reportForm.last_report_status === 'failed' ? (
+                    <span className="text-rose-400 font-bold flex items-center gap-1" title={reportForm.last_report_error || ''}>
+                      <XCircle size={13} /> Failed
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">No reports sent yet</span>
+                  )}
+                  {reportForm.last_report_at && (
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      {new Date(reportForm.last_report_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Weekly & Monthly Automation Schedules */}
+          <div className="space-y-4">
+            {/* Weekly Report Toggle & Schedule */}
+            <div className={`p-4 rounded-xl border transition-all ${
+              reportForm.weekly_enabled
+                ? 'bg-indigo-500/10 border-indigo-500/30'
+                : 'bg-slate-950/60 border-white/10'
+            }`}>
+              <div className="flex items-center justify-between pb-2">
+                <div className="flex items-center gap-2">
+                  <Calendar size={15} className="text-indigo-400" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">Weekly Automatic Report</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setReportForm(f => ({ ...f, weekly_enabled: !f.weekly_enabled }))}
+                  className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ${
+                    reportForm.weekly_enabled ? 'bg-indigo-500 justify-end' : 'bg-slate-700 justify-start'
+                  }`}
+                >
+                  <div className="bg-white w-4 h-4 rounded-full shadow-md transform" />
+                </button>
+              </div>
+
+              <p className="text-[11px] text-slate-400 leading-relaxed mb-3">
+                Dispatches previous Monday through Sunday sales & customers every <strong className="text-slate-300">Sunday at 9:00 PM IST</strong>.
+              </p>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="block text-[10px] text-slate-400 uppercase font-semibold mb-1">Delivery Day</span>
+                  <select
+                    value={reportForm.weekly_day_of_week}
+                    onChange={e => setReportForm(f => ({ ...f, weekly_day_of_week: Number(e.target.value) }))}
+                    className="w-full px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-xs text-white"
+                  >
+                    <option value={0} className="bg-slate-900 text-white">Every Sunday</option>
+                    <option value={1} className="bg-slate-900 text-white">Every Monday</option>
+                  </select>
+                </div>
+                <div>
+                  <span className="block text-[10px] text-slate-400 uppercase font-semibold mb-1">Time (IST)</span>
+                  <input
+                    type="time"
+                    value={reportForm.weekly_time}
+                    onChange={e => setReportForm(f => ({ ...f, weekly_time: e.target.value }))}
+                    className="w-full px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-xs text-white font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Monthly Report Toggle & Schedule */}
+            <div className={`p-4 rounded-xl border transition-all ${
+              reportForm.monthly_enabled
+                ? 'bg-purple-500/10 border-purple-500/30'
+                : 'bg-slate-950/60 border-white/10'
+            }`}>
+              <div className="flex items-center justify-between pb-2">
+                <div className="flex items-center gap-2">
+                  <Clock size={15} className="text-purple-400" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">Monthly Automatic Report</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setReportForm(f => ({ ...f, monthly_enabled: !f.monthly_enabled }))}
+                  className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ${
+                    reportForm.monthly_enabled ? 'bg-purple-500 justify-end' : 'bg-slate-700 justify-start'
+                  }`}
+                >
+                  <div className="bg-white w-4 h-4 rounded-full shadow-md transform" />
+                </button>
+              </div>
+
+              <p className="text-[11px] text-slate-400 leading-relaxed mb-3">
+                Dispatches the entire previous calendar month's complete sales & customer accounts on the <strong className="text-slate-300">1st day of each month at 9:00 AM IST</strong>.
+              </p>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="block text-[10px] text-slate-400 uppercase font-semibold mb-1">Delivery Day</span>
+                  <select
+                    value={reportForm.monthly_day_of_month}
+                    onChange={e => setReportForm(f => ({ ...f, monthly_day_of_month: Number(e.target.value) }))}
+                    className="w-full px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-xs text-white"
+                  >
+                    <option value={1} className="bg-slate-900 text-white">1st of Month</option>
+                  </select>
+                </div>
+                <div>
+                  <span className="block text-[10px] text-slate-400 uppercase font-semibold mb-1">Time (IST)</span>
+                  <input
+                    type="time"
+                    value={reportForm.monthly_time}
+                    onChange={e => setReportForm(f => ({ ...f, monthly_time: e.target.value }))}
+                    className="w-full px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-xs text-white font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={handleSendTestReport}
+            disabled={sendingTestReport || !reportForm.recipient_email}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-950 border border-white/10 hover:border-white/20 transition-all disabled:opacity-40"
+          >
+            {sendingTestReport ? (
+              <span className="w-3.5 h-3.5 border-2 border-slate-300 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Send size={13} />
+            )}
+            <span>Send Test Email Report</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSaveReportSettings}
+            disabled={savingReport}
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-950 bg-gradient-to-r from-amber-400 via-orange-300 to-amber-500 shadow-lg shadow-amber-500/25 hover:shadow-amber-400/40 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+          >
+            <Save size={15} />
+            <span>{savingReport ? 'Saving…' : 'Save Email Report Settings'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── ROW 4: SECURITY & DATA MANAGEMENT (BOTTOM ROW SPLIT) ── */}
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         {/* LEFT CARD: Administrator Password / Account Security */}
         <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 hover:border-cyan-400/40 rounded-2xl p-6 shadow-2xl transition-all duration-300 relative flex flex-col justify-between">

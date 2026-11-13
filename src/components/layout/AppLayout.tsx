@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   Receipt, Users, Wallet, Search, BarChart3,
   LayoutDashboard, Settings, LogOut, Menu, X,
-  Zap, Sun, Moon, Laptop, Monitor, Check
+  Sun, Moon, Laptop, Monitor, Check
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useSettingsStore } from '@/store/settingsStore'
@@ -79,9 +79,12 @@ export default function AppLayout() {
       >
         {/* Brand Header */}
         <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100 dark:border-dark-800/80">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-md shadow-brand-500/20 flex-shrink-0">
-            <Zap size={18} className="text-white" />
-          </div>
+          <img
+            src="/favicon.svg"
+            alt=""
+            aria-hidden="true"
+            className="w-9 h-9 rounded-xl shadow-md shadow-amber-500/20 flex-shrink-0"
+          />
           <div className="min-w-0">
             <p className="text-sm font-bold text-slate-900 dark:text-white truncate tracking-tight">
               {settings?.shop_name || 'Smart Cashback'}

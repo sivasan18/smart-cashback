@@ -8,7 +8,7 @@
  */
 import { useEffect, useState, useMemo } from 'react'
 import {
-  Zap, Wifi, WifiOff, ShoppingBag, CreditCard, QrCode,
+  Wifi, WifiOff, ShoppingBag, CreditCard, QrCode,
   CheckCircle, Heart, Clock, Maximize2, Minimize2,
   Banknote, ArrowRight, ShieldCheck, Sparkles, RefreshCw
 } from 'lucide-react'
@@ -76,9 +76,12 @@ export default function CustomerDisplayPage() {
       {/* ── Top Header ── */}
       <header className="relative z-10 flex items-center justify-between px-6 sm:px-10 py-4 bg-slate-900/80 backdrop-blur-md border-b border-white/5">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-brand-600 flex items-center justify-center shadow-lg shadow-brand-600/30 ring-1 ring-white/20">
-            <Zap size={22} className="text-white" />
-          </div>
+          <img
+            src="/favicon.svg"
+            alt=""
+            aria-hidden="true"
+            className="w-11 h-11 rounded-2xl shadow-lg shadow-amber-500/20"
+          />
           <div>
             <h1 className="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
               {shopName}
@@ -172,9 +175,12 @@ function State1WelcomeScreen({ shopName }: { shopName: string }) {
   return (
     <div className="text-center space-y-8 animate-fade-in max-w-2xl">
       <div className="relative inline-block">
-        <div className="w-28 h-28 rounded-3xl bg-brand-600 flex items-center justify-center mx-auto shadow-2xl shadow-brand-600/40 ring-4 ring-brand-400/20">
-          <Zap size={56} className="text-brand-100" />
-        </div>
+        <img
+          src="/favicon.svg"
+          alt=""
+          aria-hidden="true"
+          className="w-28 h-28 rounded-3xl mx-auto shadow-2xl shadow-amber-500/30"
+        />
         <span className="absolute -bottom-2 -right-2 bg-brand-500 text-brand-100 text-[11px] font-extrabold px-3 py-1 rounded-full shadow-lg border border-slate-900">
           2% CASHBACK
         </span>

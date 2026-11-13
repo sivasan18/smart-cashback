@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Zap, Lock, Mail } from 'lucide-react'
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
 
@@ -68,9 +68,12 @@ export default function LoginPage() {
 
         <div className={`login-card rounded-3xl p-8 transition-colors duration-200 ${isLeaving ? 'is-exiting' : ''}`}>
           <div className="text-center mb-8">
-            <div className="inline-flex w-16 h-16 rounded-2xl bg-brand-500 items-center justify-center shadow-lg shadow-brand-500/30 mb-4">
-              <Zap size={28} className="text-[#08090D]" />
-            </div>
+            <img
+              src="/favicon.svg"
+              alt=""
+              aria-hidden="true"
+              className="inline-flex w-16 h-16 rounded-2xl shadow-lg shadow-amber-500/20 mb-4"
+            />
             <h1 className="text-2xl font-bold text-slate-100 tracking-tight">Smart Cashback</h1>
             <p className="text-xs text-slate-400 mt-1">Administrator Sign In</p>
             <p className="text-[11px] text-slate-500 mt-3">
